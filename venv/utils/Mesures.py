@@ -4,7 +4,7 @@ import json
 from geopy import distance
 import math
 
-r_earth = 6378
+r_earth = 6371.009
 
 # script for returning elevation from lat, long, based on open elevation data
 # which in turn is based on SRTM
@@ -15,10 +15,10 @@ def get_elevation(lat, long):
     elevation = pd.io.json.json_normalize(r, 'results')['elevation'].values[0]
     return elevation
 
-def addToCoord(coord, dist):
+def addToCoord(coord, dx, dy):
     latitude, longitude = coord
     new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
-    new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / cos(latitude * math.pi / 180)
+    new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
     return new_latitude, new_longitude
 
 def get_distance_with_altitude(coord1, coord2, unit='m'):
@@ -38,7 +38,7 @@ def get_distance_with_altitude(coord1, coord2, unit='m'):
     angle = math.degrees(math.tan(y_dist / x_dist))
     return hypothenus, angle
 
-def get_subcoord_dist(coord1, coord2, distance, unit='m'):
+def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
     Give coordinates between two coordinates seperated by the given distance
     :param coord1: float: first coord
@@ -47,15 +47,22 @@ def get_subcoord_dist(coord1, coord2, distance, unit='m'):
     :param unit: string:name of the returned unit i.e : "km", "miles", "m"
     :return: a list of coordinates
     """
-    dist_tot, _ = get_distance_with_altitude(coord1, coord2, unit=unit)
-    number = dist_tot // distance
-    coordList = []
+    dist_tot = distance.geodesic(coord1, coord2).m
+    y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
+    x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
+    angle = math.tan(y_dist / x_dist)
+    dy = math.asin(angle) * space
+    dx = math.acos(angle) * space
+
+    number = int(dist_tot // space)
+    coordList = [coord1]
     for i in range(number):
-
-
-
-
+        coordList.append(addToCoord(coord1,dx,dy))
+    if dist_tot % space != 0:
+        coordList.append(coord2)
+    return coordList
 
 if __name__ == "__main__":
     #get_elevation(11.430555, -12.682673)
     print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
+    print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
