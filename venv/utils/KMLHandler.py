@@ -1,4 +1,5 @@
-from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist
+
+from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
 from pykml import parser
 import pandas as pd
 from tkinter import Tk
@@ -7,22 +8,33 @@ from tkinter.filedialog import askopenfilename
 class KMLHandler:
     def __init__(self,kml_file):
         with open(kml_file) as kml:
-            folder = parser.parse(kml).getroot().Document.Folder
+            try:
+                folder = parser.parse(kml).getroot().Document.Folder
+            except:
+                folder = parser.parse(kml).getroot().Document
 
         plnm = []
         cordi = []
+        desc = []
         for pm in folder.Placemark:
             plnm1 = pm.name
             plcs1 = pm.LineString.coordinates
-            plnm.append(plnm1.text)
-            cordi.append(plcs1.text)
+            try:
+                pldesc = pm.LineString.description
+            except:
+                pldesc = 'None'
+            plnm.append(plnm1.text.replace('\n','').replace('\t',''))
+            cordi.append(plcs1.text.replace('\n','').replace('\t',''))
+            desc.append(pldesc)
 
-        self.db = pd.DataFrame()
-        self.db['place_name'] = plnm
-        self.db['coordinates'] = cordi
-        self.db['Longitude'], db['Latitude'], db['value'] = zip(*db['coordinates'].apply(lambda x: x.split(',', 2)))
+        db = pd.DataFrame()
+        db['Trace'] = plnm
+        db['coordinates'] = cordi
+        db['Desciption'] = desc
+        db['Longitude'], db['Latitude'], db['value'] = zip(*db['coordinates'].apply(lambda x: x.split(',', 2)))
+        self.db = db
 
-    def
+    #def
 
 
 
