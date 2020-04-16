@@ -5,6 +5,8 @@ import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
+resolution = 50 #résolution pour déterminer l'altitude en metres
+
 class KMLHandler:
     def __init__(self,kml_file):
         with open(kml_file) as kml:
@@ -34,8 +36,29 @@ class KMLHandler:
         db['Longitude'], db['Latitude'], db['value'] = zip(*db['coordinates'].apply(lambda x: x.split(',', 2)))
         self.db = db
 
-    #def
+        self.sections = []
 
+    def addSection(self):
+        self
+
+    def output_coord(self):
+
+
+class LineSection:
+    def __init__(self, coord1, coord2, type='normal'):
+        """
+        Object that represent a section of LineString between two coordinates
+        :param coord1: tuple:(lat, long)
+        :param coord2: tuple:(lat, long)
+        :param type: str: 'city', 'roads', 'hill'
+        """
+        self.start, self.stop, self.type = coord1, coord2, type
+
+    def _slicing_line_(self):
+        "Slice the section to get elevation every $resolution meter"
+        self._sliced_line_ = sub_dist(self.start, self.stop, resolution, unit='m')
+
+    def _get_elevation_(self):
 
 
 

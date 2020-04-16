@@ -9,11 +9,12 @@ r_earth = 6371.009
 
 # script for returning elevation from lat, long, based on open elevation data
 # which in turn is based on SRTM
-def get_elevation(lat, long):
-    query = (r'https://api.open-elevation.com/api/v1/lookup\?locations\={0},{1}'.format(lat, long))
-    r = requests.get(query)
-    r =  json.load(r)
-    elevation = pd.io.json.json_normalize(r, 'results')['elevation'].values[0]
+def get_elevation(coordList):
+    elevation = []
+    for lat, long in coordList:
+        query = (r'https://elevation.racemap.com/api/?lat={0}&lng={1}'.format(lat, long))
+        r = requests.get(query)
+        elevation.append(float(r.text))
     return elevation
 
 def addToCoord(coord, dx, dy):
@@ -66,4 +67,5 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
 if __name__ == "__main__":
     #get_elevation(11.430555, -12.682673)
     print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
+    a = get_elevation([(11.447561, -12.672399),(11.446225,-12.672896)])
     print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
