@@ -5,7 +5,8 @@ import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-resolution = 50 #résolution pour déterminer l'altitude en metres
+resolution = 25 #résolution pour déterminer l'altitude en metres
+type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
 
 class KMLHandler:
     def __init__(self,kml_file):
@@ -38,33 +39,44 @@ class KMLHandler:
 
         self.sections = []
 
-    def addSection(self):
+    #def addSection(self):
         self
 
-    def output_coord(self):
+    #def output_coord(self):
 
 
 class LineSection:
-    def __init__(self, coord1, coord2, type='normal'):
+    def __init__(self, coord1, coord2, typekey='normal'):
         """
         Object that represent a section of LineString between two coordinates
         :param coord1: tuple:(lat, long)
         :param coord2: tuple:(lat, long)
         :param type: str: 'city', 'roads', 'hill'
         """
-        self.start, self.stop, self.type = coord1, coord2, type
+        self.start, self.stop, self.type = coord1, coord2, typekey
 
-    def _slicing_line_(self):
+    def _get_sliced_line(self):
         "Slice the section to get elevation every $resolution meter"
-        self._sliced_line_ = sub_dist(self.start, self.stop, resolution, unit='m')
+        return sub_dist(self.start, self.stop, type[self.type], unit='m')
 
-    def _get_elevation_(self):
+    def _get_elevation(self):
+        self.df = pd.DataFrame(sliced_line,columns=['lat','long'])
+        coordList = []
+        for i in range((self.df.shape[0])):
+            # Using iloc to access the values of
+            # the current row denoted by "i"
+           coordList.append(list(df.iloc[i, :]))
+        self.df['alt'] = get_alt(coordList)
+
+    sliced_line = property(_get_sliced_line)
 
 
+if __name__ == "__main__":
 
-#if __name__ == __main__:
+    ls = LineSection((11.447561, -12.672399), (11.446225, -12.672896))
+    ls.sliced_line
 
-Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
-
-handle = KMLHandler(filename)
+# Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+# filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
+#
+# handle = KMLHandler(filename)

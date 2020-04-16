@@ -52,9 +52,9 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     dist_tot = distance.geodesic(coord1, coord2).m
     y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
     x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
-    angle = math.tan(y_dist / x_dist)
-    dy = math.asin(angle) * space
-    dx = math.acos(angle) * space
+    angle = math.atan(y_dist / x_dist)
+    dy = math.sin(angle) * space
+    dx = math.cos(angle) * space
 
     number = int(dist_tot // space)
     coordList = [coord1]
