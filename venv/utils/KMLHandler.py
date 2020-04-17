@@ -1,5 +1,6 @@
 
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
+from utils.Mesures import coordinates_solver as solver
 from pykml import parser
 import pandas as pd
 from tkinter import Tk
@@ -66,7 +67,7 @@ class LineSection:
             # Using iloc to access the values of
             # the current row denoted by "i"
            coordList.append(list(self.df.iloc[i, :]))
-        self.df['alt'] = get_alt(coordList)[0]
+        self.df['alt'] = get_alt(coordList)
 
     
 
@@ -77,6 +78,8 @@ if __name__ == "__main__":
 
     ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
     print(ls._get_elevation())
+    listCoordAlt = ls.df.values.tolist()
+    a = solver(50, listCoordAlt[0], listCoordAlt[1:])
     print('OK')
 
 # Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing

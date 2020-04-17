@@ -16,13 +16,17 @@ def get_elevation(coordList):
     proc = subprocess.Popen(["curl","-d", str(coordList), "-XPOST", "-H", "Content-Type: application/json", \
         "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
     (elevation, err) = proc.communicate()
-    return eval(elevation), err
+    print("Error while getting elevation :", err)
+    return eval(elevation)
 
-def addToCoord(coord, dx, dy):
+def addToCoord(coord, dx, dy, unit='m'):
+    if unit == 'm':
+        dx /= 1000
+        dy /= 1000
     latitude, longitude = coord
     new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
     new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
-    return new_latitude, new_longitude
+    return [new_latitude, new_longitude]
 
 def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     """
@@ -41,11 +45,25 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     angle = math.degrees(math.atan(y_dist / x_dist))
     return hypothenus, angle
 
-def coordinates_solver(wanted_dist, start_point, list_coordAlt):
-    func = lambda dist : wanted_dist - dist
-    dist = [get_distance_with_altitude(start_point, coordAlt) for coordAlt in list_coordAlt]
-    initial_guess = get_distance_with_altitude(start_point, list_coordAlt[-1])
-    solution = fsolve(func, initial_guess)
+def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=10000):
+    func = lambda dist : abs(wanted_dist - dist)
+    distances = [get_distance_with_altitude(start_point, coordAlt)[0] for coordAlt in list_coordAlt]
+    for guess in distances:
+        if func(guess) <= precrep:
+            precrep = func(guess)
+            closest = list_coordAlt[distances.index(guess)]
+            next_dist = addToCoord(closest[:-1], guess/2, guess/2, unit='m')
+
+    if precrep <= 5:
+        return closest
+    else:
+        subcoord = get_subcoord_dist(closest[:-1], next_dist, precrep/2)
+        Alt = get_elevation(subcoord)
+        subcoordAlt = subcoord
+        for i in range(len(subcoordAlt)):
+            subcoordAlt[i].append(Alt[i])
+        closest = coordinates_solver(wanted_dist, closest, subcoordAlt[1:], precrep=precrep)
+        return closest
 
 
 def get_subcoord_dist(coord1, coord2, space, unit='m', alt='n'):
@@ -67,7 +85,7 @@ def get_subcoord_dist(coord1, coord2, space, unit='m', alt='n'):
     number = int(dist_tot // space)
     coordList = [coord1]
     for i in range(number):
-        coordList.append(addToCoord(coord1,dx,dy))
+        coordList.append(addToCoord(coordList[-1],dx,dy))
     if dist_tot % space != 0:
         coordList.append(coord2)
     return coordList
