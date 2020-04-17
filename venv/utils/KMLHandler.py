@@ -60,21 +60,24 @@ class LineSection:
         return sub_dist(self.start, self.stop, type[self.type], unit='m')
 
     def _get_elevation(self):
-        self.df = pd.DataFrame(sliced_line,columns=['lat','long'])
+        self.df = pd.DataFrame(self.sliced_line,columns=['lat','long'])
         coordList = []
         for i in range((self.df.shape[0])):
             # Using iloc to access the values of
             # the current row denoted by "i"
-           coordList.append(list(df.iloc[i, :]))
-        self.df['alt'] = get_alt(coordList)
+           coordList.append(list(self.df.iloc[i, :]))
+        self.df['alt'] = get_alt(coordList)[0]
+
+    
 
     sliced_line = property(_get_sliced_line)
 
 
 if __name__ == "__main__":
 
-    ls = LineSection((11.447561, -12.672399), (11.446225, -12.672896))
-    ls.sliced_line
+    ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
+    print(ls._get_elevation())
+    print('OK')
 
 # Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 # filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file

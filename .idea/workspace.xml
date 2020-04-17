@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0ad40bed-b184-4143-b1b4-8f03778ee343" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/venv/Download_Elevation_Data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/venv/utils/KMLHandler.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/utils/KMLHandler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/venv/utils/Mesures.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/utils/Mesures.py" afterDir="false" />
@@ -40,6 +41,27 @@
     </key>
   </component>
   <component name="RunManager" selected="Python.KMLHandler">
+    <configuration name="Download_Elevation_Data" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="GoogleEarth" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/venv" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/venv/Download_Elevation_Data.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="KMLHandler" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="GoogleEarth" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -107,6 +129,7 @@
       <list>
         <item itemvalue="Python.KMLHandler" />
         <item itemvalue="Python.Mesures (1)" />
+        <item itemvalue="Python.Download_Elevation_Data" />
         <item itemvalue="Python.Mesures" />
       </list>
     </recent_temporary>
@@ -162,7 +185,14 @@
       <option name="project" value="LOCAL" />
       <updated>1587058393495</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="correction calcul de coordonnées pour slicing">
+      <created>1587063073260</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1587063073260</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -170,65 +200,66 @@
     <MESSAGE value="fonction de souscoordonnées fonctionnelle" />
     <MESSAGE value="ajouter description quand disponible et retirer les artefacts de kml" />
     <MESSAGE value="correction get_elevation" />
-    <option name="LAST_COMMIT_MESSAGE" value="correction get_elevation" />
+    <MESSAGE value="correction calcul de coordonnées pour slicing" />
+    <option name="LAST_COMMIT_MESSAGE" value="correction calcul de coordonnées pour slicing" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1102" y="342" key="#xdebugger.evaluate" timestamp="1587062640059">
+    <state x="1091" y="137" key="#xdebugger.evaluate" timestamp="1587132286236">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="1102" y="342" key="#xdebugger.evaluate/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587062640059" />
-    <state x="741" y="197" key="CommitChangelistDialog2" timestamp="1587058392595">
+    <state x="1091" y="137" key="#xdebugger.evaluate/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132286236" />
+    <state x="741" y="197" key="CommitChangelistDialog2" timestamp="1587063072668">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="741" y="197" key="CommitChangelistDialog2/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587058392595" />
+    <state x="741" y="197" key="CommitChangelistDialog2/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587063072668" />
     <state x="740" y="263" key="FileChooserDialogImpl" timestamp="1586963468685">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="263" key="FileChooserDialogImpl/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1586963468685" />
-    <state width="1899" height="348" key="GridCell.Tab.0.bottom" timestamp="1587063045438">
+    <state width="1899" height="348" key="GridCell.Tab.0.bottom" timestamp="1587132458903">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587063045438" />
-    <state width="1899" height="348" key="GridCell.Tab.0.center" timestamp="1587063045438">
+    <state width="1899" height="348" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132458903" />
+    <state width="1899" height="348" key="GridCell.Tab.0.center" timestamp="1587132458902">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.0.center/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587063045438" />
-    <state width="1899" height="348" key="GridCell.Tab.0.left" timestamp="1587063045438">
+    <state width="1899" height="348" key="GridCell.Tab.0.center/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132458902" />
+    <state width="1899" height="348" key="GridCell.Tab.0.left" timestamp="1587132458902">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.0.left/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587063045438" />
-    <state width="1899" height="348" key="GridCell.Tab.0.right" timestamp="1587063045438">
+    <state width="1899" height="348" key="GridCell.Tab.0.left/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132458902" />
+    <state width="1899" height="348" key="GridCell.Tab.0.right" timestamp="1587132458903">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.0.right/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587063045438" />
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1587062980899">
+    <state width="1899" height="348" key="GridCell.Tab.0.right/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132458903" />
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1587132427090">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587062980899" />
-    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1587062980899">
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132427090" />
+    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1587132427090">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587062980899" />
-    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1587062980899">
+    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132427090" />
+    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1587132427090">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587062980899" />
-    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1587062980899">
+    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132427090" />
+    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1587132427090">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587062980899" />
+    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132427090" />
     <state x="461" y="163" key="SettingsEditor" timestamp="1586963895443">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="163" key="SettingsEditor/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1586963895443" />
-    <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1587055821521">
+    <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1587132363776">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587055821521" />
-    <state x="656" y="345" key="com.intellij.ide.util.TipDialog" timestamp="1587051325402">
+    <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587132363776" />
+    <state x="656" y="345" key="com.intellij.ide.util.TipDialog" timestamp="1587125052301">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="656" y="345" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587051325402" />
+    <state x="656" y="345" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.-480.1920.1040@0.0.1920.1040" timestamp="1587125052301" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -245,18 +276,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/venv/utils/Mesures.py</url>
-          <line>70</line>
+          <line>78</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/venv/utils/Mesures.py</url>
-          <line>54</line>
+          <url>file://$PROJECT_DIR$/venv/utils/KMLHandler.py</url>
+          <line>79</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/venv/utils/KMLHandler.py</url>
-          <line>76</line>
+          <line>78</line>
           <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/Download_Elevation_Data.py</url>
+          <line>18</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/utils/Mesures.py</url>
+          <line>18</line>
+          <option name="timeStamp" value="23" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
