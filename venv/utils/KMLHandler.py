@@ -1,13 +1,13 @@
 
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
-from utils.Mesures import coordinates_solver as solver
+from utils.Mesures import coordinates_solver as solver, AltitudeRetrievingError
 from pykml import parser
 import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
-type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
+space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
 
 class KMLHandler:
     def __init__(self,kml_file):
@@ -55,31 +55,103 @@ class LineSection:
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop, self.type = coord1, coord2, typekey
+        self.df = pd.DataFrame(self._get_alt_profile(), columns=['lat', 'long', 'alt', 'descr'])
+        func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
+        self.df['dist_from_origin'] = self.df.apply(func,axis=1)
 
-    def _get_sliced_line(self):
+    def __getitem__(self, item):
+        return self.df[self.df.index == item]
+
+
+    def _get_alt_profile(self):
         "Slice the section to get elevation every $resolution meter"
-        return sub_dist(self.start, self.stop, type[self.type], unit='m')
+        dist_evaluated, *_ = get_dist(list(self.start) + [0], list(self.stop) + [0])
+        listCoord = sub_dist(self.start, self.stop, dist_evaluated/10, unit='m')
+        alt = get_alt(listCoord)
+        for i in range(len(alt)):
+            listCoord[i].append(alt[i])
+            if listCoord[i] == self.start:
+                listCoord[i].append('Start Point')
+            elif listCoord[i] == self.stop:
+                listCoord[i].append('Stop Point')
+            else:
+                listCoord[i].append('Altitude Profile')
+        return listCoord
 
-    def _get_elevation(self):
-        self.df = pd.DataFrame(self.sliced_line,columns=['lat','long'])
-        coordList = []
-        for i in range((self.df.shape[0])):
-            # Using iloc to access the values of
-            # the current row denoted by "i"
-           coordList.append(list(self.df.iloc[i, :]))
-        self.df['alt'] = get_alt(coordList)
+    def _get_total_dist(self, list_of_coordAlt=None):
+        tot_dist = 0
+        if list_of_coordAlt == None:
+            list_of_coordAlt = self._get_list_of_coord()
 
-    
+        for i in range(len(list_of_coordAlt)-1):
+            tot_dist += get_dist(list_of_coordAlt[i], list_of_coordAlt[i+1])[0]
+        return tot_dist
 
-    sliced_line = property(_get_sliced_line)
+    def _get_list_of_coord(self):
+        return self.df[['lat','long','alt']].values.tolist()
+
+    def distance_from_origine(self, coord):
+        """
+        :return the distance from the first point
+        """
+        index = self.df.loc[(self.df['lat'] == coord[0]) & (self.df['long'] == coord[1])].index.values[0]
+        listCoordAlt = self.df[self.df.index <= index][['lat','long','alt']].values.tolist()
+        return self._get_total_dist(listCoordAlt)
+
+
+    def closest_coords(self, coord):
+        """:return the immediate inferior and superior coordinates index"""
+        exactmatch = self.df.loc[(self.df['lat'] == coord[0]) & (self.df['long'] == coord[1])].index
+        if not exactmatch.empty:
+            return exactmatch.index
+        else:
+            lowerneighbour_ind = self.df[(self.df['lat'] < coord[0]) & (self.df['long'] < coord[1])].index[-1]
+            upperneighbour_ind = self.df[(self.df['lat'] > coord[0]) & (self.df['long'] > coord[1])].index[0]
+            
+            return [lowerneighbour_ind, upperneighbour_ind]
+
+    def insert_row(self, row_value, index):
+        """
+        Insert a new row at the determined index
+        :param row_value: list of value to insert as: ['lat', 'long', 'alt', 'descr']
+        :param index: index where the row will be inserted
+        """
+        row = pd.DataFrame(row_value, columns=['lat', 'long', 'alt', 'descr'])
+        self.df = pd.concat([self.df.iloc[:index], row, self.df.iloc[index:]]).reset_index(drop=True)
+
+
+    # TODO: insert new indexes to the right place
+    def _set_pole_points(self):
+        dist_from_origin = 0
+        templistCoordAlt = self.list_of_coord
+        start = self[0][['lat','long', 'alt']].values.tolist()[0]
+        index = 0
+        while dist_from_origin != self.total_dist:
+            templistCoordAlt.pop(index)
+            try:
+                pole_lat, pole_long, pole_alt = solver(space_by_type[self.type], start, templistCoordAlt)
+            except AltitudeRetrievingError:
+                print(AltitudeRetrievingError.message)
+            closest = self.closest_coords([pole_lat, pole_long, pole_alt])
+            self.insert_row([[pole_lat, pole_long, pole_alt, 'pole']], closest[0]+1)
+            dist_from_origin = self.distance_from_origine([pole_lat, pole_long, pole_alt])
+            self[index]['dist_from_origin'] = dist_from_origin
+            start = [pole_lat, pole_long, pole_alt]
+
+
+
+
+    list_of_coord = property(_get_list_of_coord)
+    pole_points = property(_set_pole_points)
+    total_dist = property(_get_total_dist)
+   #max_angle = property(_get_max_angle)
 
 
 if __name__ == "__main__":
-
+    
     ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
-    print(ls._get_elevation())
-    listCoordAlt = ls.df.values.tolist()
-    a = solver(50, listCoordAlt[0], listCoordAlt[1:])
+    close = ls.closest_coords([11.4667, -12.609, 1000])
+    ls._set_pole_points()
     print('OK')
 
 # Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
