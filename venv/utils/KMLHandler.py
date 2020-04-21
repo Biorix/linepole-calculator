@@ -62,7 +62,6 @@ class LineSection:
     def __getitem__(self, item):
         return self.df[self.df.index == item]
 
-
     def _get_alt_profile(self):
         "Slice the section to get elevation every $resolution meter"
         dist_evaluated, *_ = get_dist(list(self.start) + [0], list(self.stop) + [0])
@@ -123,19 +122,20 @@ class LineSection:
     # TODO: insert new indexes to the right place
     def _set_pole_points(self):
         dist_from_origin = 0
-        templistCoordAlt = self.list_of_coord
+        templistCoordAlt = self.list_of_coord[1:]
         start = self[0][['lat','long', 'alt']].values.tolist()[0]
         index = 0
         while dist_from_origin != self.total_dist:
-            templistCoordAlt.pop(index)
+            #templistCoordAlt.pop(index)
             try:
                 pole_lat, pole_long, pole_alt = solver(space_by_type[self.type], start, templistCoordAlt)
             except AltitudeRetrievingError:
                 print(AltitudeRetrievingError.message)
             closest = self.closest_coords([pole_lat, pole_long, pole_alt])
-            self.insert_row([[pole_lat, pole_long, pole_alt, 'pole']], closest[0]+1)
+            index = closest[0] + 1
+            self.insert_row([[pole_lat, pole_long, pole_alt, 'pole']], index)
             dist_from_origin = self.distance_from_origine([pole_lat, pole_long, pole_alt])
-            self[index]['dist_from_origin'] = dist_from_origin
+            self.df['dist_from_origin'][index] = dist_from_origin
             start = [pole_lat, pole_long, pole_alt]
 
 

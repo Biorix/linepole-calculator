@@ -10,6 +10,7 @@ from time import sleep
 
 r_earth = 6371.009
 
+
 class AltitudeRetrievingError(Exception):
     def __init__(self, err, list):
         self.err = err
@@ -38,9 +39,9 @@ def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
         dx /= 1000
         dy /= 1000
-    latitude, longitude = coord
-    new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
-    new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
+        latitude, longitude = coord
+        new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
+        new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
     return [new_latitude, new_longitude]
 
 def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
@@ -62,7 +63,7 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     angle = math.degrees(math.atan(y_dist / x_dist))
     return hypothenus, angle
 
-def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=10000):
+def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=1000000):
     """
     Recursive solver that find the coordinates separated by the wanted distance from the start point
     :param wanted_dist: float: distance between the start_point coordinates and the searched coord
@@ -71,30 +72,38 @@ def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=10000):
     :param precrep: closest previosly find distance (for recursive purpose, DO NOT USE)
     :return: list: list of closest coordinates [lat, long, alt]
     """
-    func = lambda dist : abs(wanted_dist - dist)
+    func = lambda dist : wanted_dist - dist
     distances = [get_distance_with_altitude(start_point, coordAlt)[0] for coordAlt in list_coordAlt]
     for guess in distances:
-        if func(guess) <= precrep:
+        if abs(func(guess)) <= abs(precrep):
             precrep = func(guess)
             closest = list_coordAlt[distances.index(guess)]
-            next_dist = addToCoord(closest[:-1], guess/2, guess/2, unit='m')
+            _, _ , theta = get_xy_ground_distance(start_point, closest)
+            dx = math.cos(theta) * precrep
+            dy = math.sin(theta) * precrep
+            next_dist_coord = addToCoord(closest[:-1], dx, dy, unit='m')
 
-    if precrep <= 5:
+    if abs(precrep) <= 5:
         return closest
     else:
         #todo: corriger la non création de closest dans certain cas
-        subcoord = get_subcoord_dist(closest[:-1], next_dist, precrep/2)
+        subcoord = get_subcoord_dist(start_point[:-1], next_dist_coord, precrep/10)
         try:
             Alt = get_elevation(subcoord)
-            sleep(0.2)
+            sleep(0.1)
         except AltitudeRetrievingError:
             raise
-        subcoordAlt = subcoord
-        for i in range(len(subcoordAlt)):
-            subcoordAlt[i].append(Alt[i])
-        closest = coordinates_solver(wanted_dist, closest, subcoordAlt[1:], precrep=precrep)
+        for i in range(len(subcoord)):
+            subcoord[i].append(Alt[i])
+        # on ajout cette liste de coordonnées à la précédente
+        closest = coordinates_solver(wanted_dist, start_point, subcoord[1:], precrep=precrep)
         return closest
 
+def get_xy_ground_distance(coord1, coord2, unit='m'):
+    y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
+    x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
+    angle = math.atan(y_dist/x_dist)
+    return x_dist, y_dist, angle
 
 def get_subcoord_dist(coord1, coord2, space, unit='m', alt='n'):
     """
