@@ -5,6 +5,7 @@ from pykml import parser
 import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from scipy import spatial
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
@@ -44,7 +45,10 @@ class KMLHandler:
         self
 
     #def output_coord(self):
-
+        # a = self.df[self.df['descr'] == 'pole'][['long','lat','alt']].values.tolist()
+        # b=' '.join(map(str,a))
+        # c = b.replace('[','').replace(']','').replace(', ',',')
+        # print(c)
 
 class LineSection:
     def __init__(self, coord1, coord2, typekey='normal'):
@@ -104,10 +108,11 @@ class LineSection:
         if not exactmatch.empty:
             return exactmatch.index
         else:
-            lowerneighbour_ind = self.df[(self.df['lat'] < coord[0]) & (self.df['long'] < coord[1])].index[-1]
-            upperneighbour_ind = self.df[(self.df['lat'] > coord[0]) & (self.df['long'] > coord[1])].index[0]
+            list_of_coord = self.df[['lat','long']].values.tolist()
+            tree = spatial.KDTree(list_of_coord)
+            _, index = tree.query([[coord]])
             
-            return [lowerneighbour_ind, upperneighbour_ind]
+            return index[0][0]
 
     def insert_row(self, row_value, index):
         """
@@ -123,16 +128,16 @@ class LineSection:
     def _set_pole_points(self):
         dist_from_origin = 0
         templistCoordAlt = self.list_of_coord[1:]
-        start = self[0][['lat','long', 'alt']].values.tolist()[0]
+        start = self[0][['lat','long','alt']].values.tolist()[0]
         index = 0
-        while dist_from_origin != self.total_dist:
+        while (self.total_dist - dist_from_origin) > 10:
             #templistCoordAlt.pop(index)
             try:
                 pole_lat, pole_long, pole_alt = solver(space_by_type[self.type], start, templistCoordAlt)
             except AltitudeRetrievingError:
                 print(AltitudeRetrievingError.message)
-            closest = self.closest_coords([pole_lat, pole_long, pole_alt])
-            index = closest[0] + 1
+            closestPoint = self.closest_coords([pole_lat, pole_long])
+            index = closestPoint + 1
             self.insert_row([[pole_lat, pole_long, pole_alt, 'pole']], index)
             dist_from_origin = self.distance_from_origine([pole_lat, pole_long, pole_alt])
             self.df['dist_from_origin'][index] = dist_from_origin
@@ -150,7 +155,7 @@ class LineSection:
 if __name__ == "__main__":
     
     ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
-    close = ls.closest_coords([11.4667, -12.609, 1000])
+    close = ls.closest_coords([11.4667, -12.609])
     ls._set_pole_points()
     print('OK')
 
