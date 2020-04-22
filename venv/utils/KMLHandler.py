@@ -69,7 +69,7 @@ class LineSection:
     def _get_alt_profile(self):
         "Slice the section to get elevation every $resolution meter"
         dist_evaluated, *_ = get_dist(list(self.start) + [0], list(self.stop) + [0])
-        listCoord = sub_dist(self.start, self.stop, dist_evaluated/10, unit='m')
+        listCoord = sub_dist(self.start, self.stop, space_by_type[self.type], unit='m')
         alt = get_alt(listCoord)
         for i in range(len(alt)):
             listCoord[i].append(alt[i])
@@ -104,15 +104,11 @@ class LineSection:
 
     def closest_coords(self, coord):
         """:return the immediate inferior and superior coordinates index"""
-        exactmatch = self.df.loc[(self.df['lat'] == coord[0]) & (self.df['long'] == coord[1])].index
-        if not exactmatch.empty:
-            return exactmatch.index
-        else:
-            list_of_coord = self.df[['lat','long']].values.tolist()
-            tree = spatial.KDTree(list_of_coord)
-            _, index = tree.query([[coord]])
-            
-            return index[0][0]
+        list_of_coord = self.df[['lat','long']].values.tolist()
+        tree = spatial.KDTree(list_of_coord)
+        _, index = tree.query([[coord]])
+
+        return index[0][0]
 
     def insert_row(self, row_value, index):
         """
@@ -131,11 +127,6 @@ class LineSection:
         start = self[0][['lat','long','alt']].values.tolist()[0]
         index = 0
         while (self.total_dist - dist_from_origin) > 10:
-            #templistCoordAlt.pop(index)
-            try:
-                pole_lat, pole_long, pole_alt = solver(space_by_type[self.type], start, templistCoordAlt)
-            except AltitudeRetrievingError:
-                print(AltitudeRetrievingError.message)
             closestPoint = self.closest_coords([pole_lat, pole_long])
             index = closestPoint + 1
             self.insert_row([[pole_lat, pole_long, pole_alt, 'pole']], index)
@@ -156,7 +147,7 @@ if __name__ == "__main__":
     
     ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
     close = ls.closest_coords([11.4667, -12.609])
-    ls._set_pole_points()
+    #ls._set_pole_points()
     print('OK')
 
 # Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
