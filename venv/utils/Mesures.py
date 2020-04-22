@@ -87,7 +87,15 @@ def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=1000000)
         return closest
     else:
         #todo: corriger la non création de closest dans certain cas
-        subcoord = get_subcoord_dist(start_point[:-1], next_dist_coord, precrep/10)
+        try:
+            subcoord = get_subcoord_dist(start_point[:-1], next_dist_coord, precrep/10)
+        except:
+            closest = list_coordAlt[distances.index(guess)]
+            _, _, theta = get_xy_ground_distance(start_point, closest)
+            dx = math.cos(theta) * precrep
+            dy = math.sin(theta) * precrep
+            next_dist_coord = addToCoord(closest[:-1], dx/2, dy/2, unit='m')
+            subcoord = get_subcoord_dist(start_point[:-1], next_dist_coord, precrep / 10)
         try:
             Alt = get_elevation(subcoord)
             sleep(0.1)
@@ -121,7 +129,7 @@ def get_subcoord_dist(coord1, coord2, space, unit='m', alt='n'):
     dy = math.sin(angle) * space
     dx = math.cos(angle) * space
 
-    number = int(dist_tot // space)
+    number = abs(int(dist_tot // space))
     coordList = [list(coord1)]
     for i in range(number):
         coordList.append(addToCoord(coordList[-1],dx,dy))
