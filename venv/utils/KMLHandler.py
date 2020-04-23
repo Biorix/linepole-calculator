@@ -103,7 +103,7 @@ class LineSection:
 
 
     def closest_coords(self, coord):
-        """:return the immediate inferior and superior coordinates index"""
+        """:return closest coordinates index"""
         list_of_coord = self.df[['lat','long']].values.tolist()
         tree = spatial.KDTree(list_of_coord)
         _, index = tree.query([[coord]])

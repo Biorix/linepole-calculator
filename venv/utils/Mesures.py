@@ -113,7 +113,7 @@ def get_xy_ground_distance(coord1, coord2, unit='m'):
     angle = math.atan(y_dist/x_dist)
     return x_dist, y_dist, angle
 
-def get_subcoord_dist(coord1, coord2, space, unit='m', alt='n'):
+def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
     Give coordinates between two coordinates seperated by the given distance
     :param coord1: float: first coord
