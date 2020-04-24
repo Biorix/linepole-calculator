@@ -110,7 +110,7 @@ def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=1000000)
 def get_xy_ground_distance(coord1, coord2, unit='m'):
     y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
     x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
-    angle = math.atan(y_dist/x_dist)
+    angle = math.atan2(y_dist,x_dist)
     return x_dist, y_dist, angle
 
 def get_subcoord_dist(coord1, coord2, space, unit='m'):
@@ -136,6 +136,12 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     if dist_tot % space != 0:
         coordList.append(list(coord2))
     return coordList
+
+
+def get_angle_between_two_lines(coord1, coord2, coord3):
+    _, _, angle1 = get_xy_ground_distance(coord1, coord2)
+    _, _, angle2 = get_xy_ground_distance(coord2, coord3)
+    return abs(math.degrees(angle2) - math.degrees(angle1))
 
 if __name__ == "__main__":
     #get_elevation(11.430555, -12.682673)
