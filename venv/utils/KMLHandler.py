@@ -2,7 +2,7 @@
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
 from utils.Mesures import coordinates_solver as solver, AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
-from pykml import parser
+from fastkml import kml, Document, Folder, Placemark
 import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
@@ -11,39 +11,81 @@ from scipy import spatial
 resolution = 25 #résolution pour déterminer l'altitude en metres
 space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
 
-class KMLHandler:
+class KMLHandler(kml.KML):
     def __init__(self,kml_file):
-        with open(kml_file) as kml:
-            try:
-                folder = parser.parse(kml).getroot().Document.Folder
-            except:
-                folder = parser.parse(kml).getroot().Document
+        with open(kml_file, 'rb') as file:
+            doc = file.read()
+        super().__init__()
+        self.from_string(doc)
 
-        plnm = []
-        cordi = []
-        desc = []
-        for pm in folder.Placemark:
-            plnm1 = pm.name
-            plcs1 = pm.LineString.coordinates
-            try:
-                pldesc = pm.LineString.description
-            except:
-                pldesc = 'None'
-            plnm.append(plnm1.text.replace('\n','').replace('\t',''))
-            cordi.append(plcs1.text.replace('\n','').replace('\t',''))
-            desc.append(pldesc)
+        self.Documents = self._set_documents()
+        self.Folders = self._set_folders(self.Documents)
+        if self.Folders != None:
+            self.Placemarks = self._set_placemarks(self.Folders)
+        else:
+            self.Placemarks = self._set_placemarks(self.Documents)
 
-        db = pd.DataFrame()
-        db['Trace'] = plnm
-        db['coordinates'] = cordi
-        db['Desciption'] = desc
-        db['Longitude'], db['Latitude'], db['value'] = zip(*db['coordinates'].apply(lambda x: x.split(',', 2)))
-        self.db = db
+        self._set_dataframe()
 
-        self.sections = []
+    def _set_documents(self):
+        return list(self.features())
 
-    #def addSection(self):
-        self
+    def _set_folders(self, upstream_features):
+        for feature in upstream_features:
+            if isinstance(list(feature.features())[0], Folder):
+                return list(feature.features())
+            else:
+                return None
+
+    def _set_placemarks(self, upstream_features):
+        for feature in upstream_features:
+            if isinstance(list(feature.features())[0], Placemark):
+                return list(feature.features())
+            else:
+                return None
+
+    def _set_dataframe(self):
+        pmname = []
+        pmcoords = []
+        pmdesc = []
+        for pm in self.Placemarks:
+            if pm.geometry.geom_type == 'LineString':
+                pmname1 = pm.name
+                pmcoords1 = self._flip_longlat(pm.geometry.coords)
+                if pm.description == None:
+                    pmdesc1 = 'normal'
+                else:
+                    pmdesc1 = pm.description
+            pmname.append(pmname1)
+            pmcoords.append(pmcoords1)
+            pmdesc.append(pmdesc1)
+
+        info_df = pd.DataFrame()
+        info_df['Trace'] = pmname
+        info_df['Coordinates'] = pmcoords
+        info_df['Type'] = pmdesc
+        self.info_df = info_df
+        self._set_sections()
+
+    def _set_sections(self):
+        func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
+        self.info_df['pole_coords'] = self.info_df.apply(func, axis=1)
+
+    def _flip_longlat(self, coordTuple):
+        outList = []
+        for coord in coordTuple:
+            outList.append(tuple([coord[1],coord[0],coord[2]]))
+        return tuple(outList)
+
+    # def clearhead(self, doc):
+    #     lines = doc.split('\n')
+    #     for line in lines:
+    #         if "encoding=" in line:
+    #             lines.remove(line)
+    #     return '\n'.join(lines)
+
+    def set_section(self):
+        typelist = self.info_df.desc.unique()
 
     #def output_coord(self):
         # a = self.df[self.df['descr'] == 'pole'][['long','lat','alt']].values.tolist()
@@ -56,8 +98,8 @@ class LineSection:
     def __init__(self, coord1, coord2, typekey='normal'):
         """
         Object that represent a section of LineString between two coordinates
-        :param coord1: tuple:(lat, long)
-        :param coord2: tuple:(lat, long)
+        :param coord1: tuple or list:(lat, long)
+        :param coord2: tupleor list:(lat, long)
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop, self.type = coord1, coord2, typekey
@@ -77,14 +119,14 @@ class LineSection:
 
     def _get_alt_profile(self, pole='n'):
         "Slice the section to get elevation every $resolution meter"
-        dist_evaluated, *_ = get_dist(list(self.start) + [0], list(self.stop) + [0])
+        dist_evaluated, *_ = get_dist(list(self.start), list(self.stop))
         listCoord = sub_dist(self.start, self.stop, space_by_type[self.type], unit='m')
         alt = get_alt(listCoord)
         for i in range(len(alt)):
-            listCoord[i].append(alt[i])
-            if listCoord[i] == self.start:
+            listCoord[i][-1] = alt[i]
+            if listCoord[i][:-1] == self.start[:-1]:
                 listCoord[i].append('Start Point')
-            elif listCoord[i] == self.stop:
+            elif listCoord[i][:-1] == self.stop[:-1]:
                 listCoord[i].append('Stop Point')
             else:
                 if pole == 'y':
@@ -168,6 +210,11 @@ class LineSection:
 
 class Line(LineSection):
     def __init__(self, list_of_coord, typekey='normal'):
+        """
+        Complete line composed of linesecions
+        :param list_of_coord: list of list: (lat, long, alt)
+        :param type: str: 'city', 'roads', 'hill'
+        """
         self.start, self.stop, self.type = list_of_coord[0], list_of_coord[-1], typekey
         self.df = self._set_dataframe(list_of_coord)
         func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
@@ -192,14 +239,14 @@ class Line(LineSection):
 if __name__ == "__main__":
 
 
-    line = Line([(11.63488448411825,-12.53838094890301),(11.63184216703874,-12.53958214076534),(11.62903433023975,-12.53552943917302),\
-        (11.62872837445833,-12.53421506867161),(11.6283713707586,-12.53052930002481),(11.62707119983867,-12.52673726544863)])
-    # ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
-    # close = ls.closest_coords([11.4667, -12.609])
-    #ls._set_pole_points()
-    print('OK')
+    # line = Line([(11.63488448411825,-12.53838094890301),(11.63184216703874,-12.53958214076534),(11.62903433023975,-12.53552943917302),\
+    #     (11.62872837445833,-12.53421506867161),(11.6283713707586,-12.53052930002481),(11.62707119983867,-12.52673726544863)])
+    # # ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
+    # # close = ls.closest_coords([11.4667, -12.609])
+    # #ls._set_pole_points()
+    # print('OK')
 
-# Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-# filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
-#
-# handle = KMLHandler(filename)
+    Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+    filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
+
+    handle = KMLHandler(filename)

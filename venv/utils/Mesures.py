@@ -39,10 +39,10 @@ def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
         dx /= 1000
         dy /= 1000
-        latitude, longitude = coord
+        latitude, longitude, *alt = coord
         new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
         new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
-    return [new_latitude, new_longitude]
+    return [new_latitude, new_longitude, alt]
 
 def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     """
@@ -56,7 +56,7 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     lat1, long1, alt1 = coordAlt1
     lat2, long2, alt2 = coordAlt2
     if alt1 == 0 or alt2 == 0:
-        return distance.geodesic(coordAlt1, coordAlt2).m, 0
+        return distance.geodesic(coordAlt1[:-1], coordAlt2[:-1]).m, 0
     x_dist = eval('distance.geodesic((lat1,long1),(lat2, long2)).{0}'.format(unit))
     y_dist = abs(alt2 - alt1)
     hypothenus = math.sqrt(x_dist**2 + y_dist**2)
@@ -132,7 +132,7 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     number = abs(int(dist_tot // space))
     coordList = [list(coord1)]
     for i in range(number):
-        coordList.append(addToCoord(coordList[-1],dx,dy))
+        coordList.append(addToCoord(coordList[i],dx,dy))
     if dist_tot % space != 0:
         coordList.append(list(coord2))
     return coordList
