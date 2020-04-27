@@ -65,11 +65,14 @@ class KMLHandler(kml.KML):
         info_df['Coordinates'] = pmcoords
         info_df['Type'] = pmdesc
         self.info_df = info_df
-        self._set_sections()
+
 
     def _set_sections(self):
         func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
-        self.info_df['pole_coords'] = self.info_df.apply(func, axis=1)
+        for i in range(len(self.info_df)):
+            trace = self.info_df.iloc[i]
+            df = func(trace)
+            self.info_df['Poles'] = df
 
     def _flip_longlat(self, coordTuple):
         outList = []
@@ -92,6 +95,7 @@ class KMLHandler(kml.KML):
         # b=' '.join(map(str,a))
         # c = b.replace('[','').replace(']','').replace(', ',',')
         # print(c)
+
 
 
 class LineSection:
@@ -215,7 +219,12 @@ class Line(LineSection):
         :param list_of_coord: list of list: (lat, long, alt)
         :param type: str: 'city', 'roads', 'hill'
         """
-        self.start, self.stop, self.type = list_of_coord[0], list_of_coord[-1], typekey
+        self.start, self.stop = list_of_coord[0], list_of_coord[-1]
+        if typekey in space_by_type.keys():
+            self.type = typekey
+        else:
+            self.type = 'normal'
+
         self.df = self._set_dataframe(list_of_coord)
         func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
         self.df['dist_from_origin'] = self.df.apply(func,axis=1)
@@ -250,3 +259,4 @@ if __name__ == "__main__":
     filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
 
     handle = KMLHandler(filename)
+    print('OK')
