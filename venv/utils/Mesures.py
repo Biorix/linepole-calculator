@@ -6,7 +6,6 @@ from geopy import distance
 import math
 from scipy.optimize import fsolve
 import subprocess
-from time import sleep
 
 r_earth = 6371.009
 
@@ -29,7 +28,6 @@ def get_elevation(coordList):
     if err == None and b'Too Many Request' not in elevation:
         return eval(elevation)
     elif b'Too Many Request' in elevation:
-        sleep(1)
         return get_elevation(coordList)
     else:
         print("Error while getting elevation :", err, elevation)
@@ -98,7 +96,6 @@ def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=1000000)
             subcoord = get_subcoord_dist(start_point[:-1], next_dist_coord, precrep / 10)
         try:
             Alt = get_elevation(subcoord)
-            sleep(0.1)
         except AltitudeRetrievingError:
             raise
         for i in range(len(subcoord)):

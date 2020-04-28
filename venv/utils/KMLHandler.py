@@ -3,13 +3,16 @@ from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude a
 from utils.Mesures import coordinates_solver as solver, AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from fastkml import kml, Document, Folder, Placemark
+from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
+from tqdm import trange
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from scipy import spatial
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
+ns = '{http://www.opengis.net/kml/2.2}'
 
 class KMLHandler(kml.KML):
     def __init__(self,kml_file):
@@ -26,6 +29,7 @@ class KMLHandler(kml.KML):
             self.Placemarks = self._set_placemarks(self.Documents)
 
         self._set_dataframe()
+        self._set_sections()
 
     def _set_documents(self):
         return list(self.features())
@@ -60,43 +64,77 @@ class KMLHandler(kml.KML):
             pmcoords.append(pmcoords1)
             pmdesc.append(pmdesc1)
 
-        info_df = pd.DataFrame()
-        info_df['Trace'] = pmname
-        info_df['Coordinates'] = pmcoords
-        info_df['Type'] = pmdesc
+        info = {'Trace':pmname, 'Coordinates':pmcoords, 'Type':pmdesc}
+        info_df = pd.DataFrame(info)
         self.info_df = info_df
 
 
     def _set_sections(self):
         func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
+        outputs_list = []
         for i in range(len(self.info_df)):
             trace = self.info_df.iloc[i]
-            df = func(trace)
-            self.info_df['Poles'] = df
+            current_line = func(trace)
+            self.info_df.iloc[i]['Poles'] = Line
+            outputs_list.append(self._output_coord(current_line))
+        self.info_df['Outputs'] = outputs_list
 
+    def _get_output_kml(self):
+        outputkml = kml.KML(self)
+        for doc in self.Documents:
+            id = doc.id
+            name = doc.name
+            desc = doc.description
+            outdoc = kml.Document(ns, id, name, desc)
+            outputkml.append(outdoc)
+
+            if isinstance(list(doc.features())[0], Placemark):
+                outdoc.append(self._setPlacemark_for_KML(doc.features()))
+            else:
+                for folder in doc.features():
+                    id = folder.id
+                    name = folder.name
+                    desc = folder.description
+                    outfolder = kml.Folder(ns, id, name, desc)
+                    outdoc.append(outfolder)
+                    outfolder.append(self._setPlacemark_for_KML(folder.features()))
+                
+        return outputkml
+
+    def _setPlacemark_for_KML(self,upstream_feature):
+        for placemark in upstream_feature:
+            id = placemark.id
+            name = placemark.name
+            desc = placemark.description
+            # creating nested folder
+            out_nsfolder = kml.Folder(ns, id, name, desc)
+            # creating placemarks (points and LineString)
+            Line = self.info_df[self.info_df.Trace == name]['Outputs'].values[0]
+            outplacemark = kml.Placemark(ns, id, name, desc)
+            outplacemark.geometry = LineString(Line)
+            out_nsfolder.append(placemark)
+
+            for point in Line:
+                id = Line.index(point)
+                name = placemark.name + str(id)
+                desc = 'Electrique Pole'
+                outpoint = kml.Placemark(ns, id, name, desc)
+                outpoint.geometry = Point(point)
+                out_nsfolder.append(outpoint)
+                
+        return out_nsfolder
+    
     def _flip_longlat(self, coordTuple):
         outList = []
         for coord in coordTuple:
             outList.append(tuple([coord[1],coord[0],coord[2]]))
         return tuple(outList)
 
-    # def clearhead(self, doc):
-    #     lines = doc.split('\n')
-    #     for line in lines:
-    #         if "encoding=" in line:
-    #             lines.remove(line)
-    #     return '\n'.join(lines)
 
-    def set_section(self):
-        typelist = self.info_df.desc.unique()
+    def _output_coord(self, Line):
+        return Line.df[Line.df['descr'] == 'Pole'][['long','lat','alt']].values.tolist()
 
-    #def output_coord(self):
-        # a = self.df[self.df['descr'] == 'pole'][['long','lat','alt']].values.tolist()
-        # b=' '.join(map(str,a))
-        # c = b.replace('[','').replace(']','').replace(', ',',')
-        # print(c)
-
-
+    outputkml = property(_get_output_kml)
 
 class LineSection:
     def __init__(self, coord1, coord2, typekey='normal'):
@@ -209,7 +247,6 @@ class LineSection:
     list_of_coord = property(_get_list_of_coord)
     pole_points = property(_get_pole_points)
     total_dist = property(_get_total_dist)
-   #max_angle = property(_get_max_angle)
 
 
 class Line(LineSection):
@@ -233,14 +270,14 @@ class Line(LineSection):
 
     def _set_dataframe(self, list_of_coord):
         ls_list = []
-        for i in range(1, len(list_of_coord), 1):
+        for i in trange(1, len(list_of_coord), 1):
             ls = LineSection(list_of_coord[i-1], list_of_coord[i],typekey=self.type)
             ls_list.append(ls[:-1])
         return pd.concat(ls_list, ignore_index=True, sort=False)
 
     def _set_prev_hor_angles(self):
         angle_list = [0]
-        for i in range(1, len(self.list_of_coord)-1, 1):
+        for i in trange(1, len(self.list_of_coord)-1, 1):
             angle_list.append(get_angle(self.list_of_coord[i-1], self.list_of_coord[i], self.list_of_coord[i+1]))
         angle_list.append(0)
         self.df['Angle Horizontal'] = angle_list
@@ -248,15 +285,9 @@ class Line(LineSection):
 if __name__ == "__main__":
 
 
-    # line = Line([(11.63488448411825,-12.53838094890301),(11.63184216703874,-12.53958214076534),(11.62903433023975,-12.53552943917302),\
-    #     (11.62872837445833,-12.53421506867161),(11.6283713707586,-12.53052930002481),(11.62707119983867,-12.52673726544863)])
-    # # ls = LineSection((11.466135, -12.616524), ( 11.489022, -12.538672))
-    # # close = ls.closest_coords([11.4667, -12.609])
-    # #ls._set_pole_points()
-    # print('OK')
-
     Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
     filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
 
     handle = KMLHandler(filename)
+    print(handle.outputkml.to_string(prettyprint=True))
     print('OK')
