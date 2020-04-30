@@ -121,8 +121,15 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
     dist_tot = distance.geodesic(coord1, coord2).m
     y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
+    if coord2[1] - coord1[1] < 0:
+        y_dist *= -1
     x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
-    angle = math.atan(y_dist / x_dist)
+    if coord2[0] - coord1[0] < 0:
+        x_dist *= -1
+    if x_dist < 0 and y_dist < 0:
+        angle = math.atan2(y_dist, x_dist)
+    else:
+        angle = math.atan(y_dist/ x_dist)
     dy = math.sin(angle) * space
     dx = math.cos(angle) * space
 
