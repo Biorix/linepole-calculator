@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
-from utils.Mesures import coordinates_solver as solver, AltitudeRetrievingError
+from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from fastkml import kml, Document, Folder, Placemark
 from shapely.geometry import Point, LineString, Polygon
@@ -82,7 +82,7 @@ class KMLHandler(kml.KML):
     def _set_sections(self):
         func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
         outputs_list = []
-        for i in range(len(self.info_df)):
+        for i in trange(len(self.info_df)):
             trace = self.info_df.iloc[i]
             current_line = func(trace)
             self.info_df.iloc[i]['Poles'] = Line
