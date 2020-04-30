@@ -106,8 +106,16 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
 
 def get_xy_ground_distance(coord1, coord2, unit='m'):
     y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
+    if coord2[0] < coord1[0]:
+        y_dist *= -1
     x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
-    angle = math.atan2(y_dist,x_dist)
+    if coord2[1] < coord1[1]:
+        x_dist *= -1
+    if x_dist < 0 or y_dist < 0:
+        angle = math.atan2(y_dist, x_dist)
+    else:
+        angle = math.atan(y_dist/ x_dist)
+
     return x_dist, y_dist, angle
 
 def get_subcoord_dist(coord1, coord2, space, unit='m'):
@@ -120,16 +128,7 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     :return: a list of coordinates
     """
     dist_tot = distance.geodesic(coord1, coord2).m
-    y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
-    if coord2[0] < coord1[0]:
-        y_dist *= -1
-    x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
-    if coord2[1] < coord1[1]:
-        x_dist *= -1
-    if x_dist < 0 or y_dist < 0:
-        angle = math.atan2(y_dist, x_dist)
-    else:
-        angle = math.atan(y_dist/ x_dist)
+    x_dist, y_dist, angle = get_xy_ground_distance(coord1,coord2, unit=unit)
     dy = math.sin(angle) * space
     dx = math.cos(angle) * space
 
