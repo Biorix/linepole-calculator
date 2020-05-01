@@ -16,7 +16,7 @@ handle = KMLHandler(filename)
 
 handle.generateOutput()
 df = handle.outputdf
-
+camelia = handle.camelia
 output_filename = asksaveasfilename(defaultextension='.kml')
 f = open(output_filename, "w+")
 f.write(repr(handle))

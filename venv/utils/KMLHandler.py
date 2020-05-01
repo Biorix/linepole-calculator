@@ -6,9 +6,8 @@ from fastkml import kml, Document, Folder, Placemark
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
 from tqdm import trange, tqdm
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
-from scipy import spatial
+from numpy import gradient, array, transpose
+#from scipy import spatial
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
@@ -45,6 +44,9 @@ class KMLHandler(kml.KML):
         keys = self.info_df['Trace'].values.tolist()
         frame = [df.df for df in self.info_df['Poles'].values.tolist()]
         return pd.concat(frame, keys=keys)
+
+    def _get_cameliadf(self):
+        return cameliaDF(self.outputdf)
 
     def _set_documents(self):
         return list(self.inputKML.features())
@@ -159,9 +161,41 @@ class KMLHandler(kml.KML):
         return Line.df[Line.df['descr'] == 'Pole'][['long','lat','alt']].values.tolist()
 
     outputdf = property(_get_outputdf)
+    camelia = property(_get_cameliadf)
 
-# class cameliaDF(pd.DataFrame):
-#     def __init__(self,KMLHandle):
+class cameliaDF(pd.DataFrame):
+    def __init__(self,line_df):
+        columns = ['Type', 'Nom', 'Hauteur (m)', 'Altitude (m)', 'Angle de piquetagegr', 'Orientation supportgr',
+                   'Fonction', 'Branchements', 'Nature', 'Structure', 'Classe', 'Ecart entre unifilaires (m)',
+                   'Nature du sol', 'Coef. ks', 'Surimplantation (m)', 'Armement', 'Orientation armementgr',
+                   "Décalage d'accrochage (m)", 'Isolateur', 'Équipement', 'Longueur de portée(m)']
+        empty_column = ['NaN'] * len(line_df)
+        type = empty_column
+        nom = [n[1] for n in line_df.index.to_list()]
+        hauteur = empty_column
+        altitude = list(line_df.alt.values)
+        piquetage = list(gradient(line_df['Angle Horizontal'].values))
+        orientation = empty_column
+        fonction = empty_column
+        branchement = empty_column
+        nature = empty_column
+        structure = empty_column
+        classe = empty_column
+        ecart = list(line_df.dist_from_prev.values)
+        nature_sol = empty_column
+        ks = empty_column
+        surimplantation = empty_column
+        armement = empty_column
+        orientation_armement = empty_column
+        decalage = empty_column
+        isolateur = empty_column
+        equipement = empty_column
+        portee = empty_column
+        data = transpose(array([type, nom, hauteur, altitude, piquetage, orientation, fonction, branchement, nature, structure, classe,
+                ecart, nature_sol, ks, surimplantation, armement, orientation_armement, decalage, isolateur, equipement,
+                portee]))
+        super().__init__(data, columns=columns)
+
 
 
 class LineSection:
@@ -175,7 +209,7 @@ class LineSection:
         self.start, self.stop, self.type = coord1, coord2, typekey
         self.df = pd.DataFrame(self._get_alt_profile(pole='y'), columns=['lat', 'long', 'alt', 'descr'])
         func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
-        self.df['dist_from_origin'] = self.df.apply(func,axis=1)
+        #self.df['dist_from_origin'] = self.df.apply(func,axis=1)
         self._set_prev_azi_angles()
 
     def __get__(self, instance, owner):
@@ -256,6 +290,11 @@ class LineSection:
                 angleList.append(angle)
         self.df['Azimut Angle'] = angleList
 
+    def dist_from_prev(self, index):
+        if index == 0:
+            return 0
+        else:
+            return (self[index]['dist_from_origin'].values - self[index-1]['dist_from_origin'].values)[0]
 
     list_of_coord = property(_get_list_of_coord)
     pole_points = property(_get_pole_points)
@@ -279,6 +318,7 @@ class Line(LineSection):
         func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
         tqdm.pandas(desc="Distance from origine summing")
         self.df['dist_from_origin'] = self.df.progress_apply(func,axis=1)
+        self.df['dist_from_prev'] = list(map(self.dist_from_prev, range(len(self.df))))
         self._set_prev_azi_angles()
         self._set_prev_hor_angles()
 
