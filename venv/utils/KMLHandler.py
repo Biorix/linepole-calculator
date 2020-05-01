@@ -181,7 +181,7 @@ class cameliaDF(pd.DataFrame):
         nature = empty_column
         structure = empty_column
         classe = empty_column
-        ecart = list(line_df.dist_from_prev.values)
+        ecart = empty_column
         nature_sol = empty_column
         ks = empty_column
         surimplantation = empty_column
@@ -190,7 +190,7 @@ class cameliaDF(pd.DataFrame):
         decalage = empty_column
         isolateur = empty_column
         equipement = empty_column
-        portee = empty_column
+        portee = list(line_df.dist_from_prev.values)
         data = transpose(array([type, nom, hauteur, altitude, piquetage, orientation, fonction, branchement, nature, structure, classe,
                 ecart, nature_sol, ks, surimplantation, armement, orientation_armement, decalage, isolateur, equipement,
                 portee]))
