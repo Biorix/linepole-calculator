@@ -15,7 +15,8 @@ handle = KMLHandler(filename)
 #     pass
 
 handle.generateOutput()
-print(handle)
+df = handle.outputdf
+
 output_filename = asksaveasfilename(defaultextension='.kml')
 f = open(output_filename, "w+")
 f.write(repr(handle))

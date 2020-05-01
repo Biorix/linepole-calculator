@@ -41,6 +41,11 @@ class KMLHandler(kml.KML):
     def generateOutput(self):
         self.outputkml = self._get_output_kml()
 
+    def _get_outputdf(self):
+        keys = self.info_df['Trace'].values.tolist()
+        frame = [df.df for df in self.info_df['Poles'].values.tolist()]
+        return pd.concat(frame, keys=keys)
+
     def _set_documents(self):
         return list(self.inputKML.features())
 
@@ -81,11 +86,11 @@ class KMLHandler(kml.KML):
 
     def _set_sections(self):
         func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
+        tqdm.pandas(desc = 'Creating Lines')
+        self.info_df['Poles'] = self.info_df.progress_apply(func, axis=1)
         outputs_list = []
         for i in trange(len(self.info_df)):
-            trace = self.info_df.iloc[i]
-            current_line = func(trace)
-            self.info_df.iloc[i]['Poles'] = Line
+            current_line = self.info_df.Poles[i]
             outputs_list.append(self._output_coord(current_line))
         self.info_df['Outputs'] = outputs_list
 
@@ -152,6 +157,11 @@ class KMLHandler(kml.KML):
 
     def _output_coord(self, Line):
         return Line.df[Line.df['descr'] == 'Pole'][['long','lat','alt']].values.tolist()
+
+    outputdf = property(_get_outputdf)
+
+# class cameliaDF(pd.DataFrame):
+#     def __init__(self,KMLHandle):
 
 
 class LineSection:
