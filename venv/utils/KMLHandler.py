@@ -42,8 +42,12 @@ class KMLHandler(kml.KML):
 
     def _get_outputdf(self):
         keys = self.info_df['Trace'].values.tolist()
-        frame = [df.df for df in self.info_df['Poles'].values.tolist()]
-        return pd.concat(frame, keys=keys)
+        frame = [line.df for line in self.info_df['Line'].values.tolist()]
+        for i in range(len(frame)):
+            df = frame[i]
+            df.insert(0,'Number', range(len(df)))
+            df.insert(1, 'Name', keys[i])
+        return pd.concat(frame, keys=keys, join='inner', ignore_index=True)
 
     def _get_cameliadf(self):
         return cameliaDF(self.outputdf)
@@ -89,10 +93,10 @@ class KMLHandler(kml.KML):
     def _set_sections(self):
         func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
         tqdm.pandas(desc = 'Creating Lines')
-        self.info_df['Poles'] = self.info_df.progress_apply(func, axis=1)
+        self.info_df['Line'] = self.info_df.progress_apply(func, axis=1)
         outputs_list = []
         for i in trange(len(self.info_df)):
-            current_line = self.info_df.Poles[i]
+            current_line = self.info_df.Line[i]
             outputs_list.append(self._output_coord(current_line))
         self.info_df['Outputs'] = outputs_list
 
