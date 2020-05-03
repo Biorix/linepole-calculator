@@ -169,13 +169,14 @@ class KMLHandler(kml.KML):
 
 class cameliaDF(pd.DataFrame):
     def __init__(self,line_df):
-        columns = ['Type', 'Nom', 'Hauteur (m)', 'Altitude (m)', 'Angle de piquetagegr', 'Orientation supportgr',
+        columns = ['Ligne', 'Type', 'Nom', 'Hauteur (m)', 'Altitude (m)', 'Angle de piquetagegr', 'Orientation supportgr',
                    'Fonction', 'Branchements', 'Nature', 'Structure', 'Classe', 'Ecart entre unifilaires (m)',
                    'Nature du sol', 'Coef. ks', 'Surimplantation (m)', 'Armement', 'Orientation armementgr',
                    "Décalage d'accrochage (m)", 'Isolateur', 'Équipement', 'Longueur de portée(m)']
         empty_column = ['NaN'] * len(line_df)
+        ligne = [n for n in line_df.Name.to_list()]
         type = empty_column
-        nom = [n[1] for n in line_df.index.to_list()]
+        nom = [n[1] for n in line_df.Number.to_list()]
         hauteur = empty_column
         altitude = list(line_df.alt.values)
         piquetage = list(gradient(line_df['Angle Horizontal'].values))
@@ -195,7 +196,7 @@ class cameliaDF(pd.DataFrame):
         isolateur = empty_column
         equipement = empty_column
         portee = list(line_df.dist_from_prev.values)
-        data = transpose(array([type, nom, hauteur, altitude, piquetage, orientation, fonction, branchement, nature, structure, classe,
+        data = transpose(array([ligne, type, nom, hauteur, altitude, piquetage, orientation, fonction, branchement, nature, structure, classe,
                 ecart, nature_sol, ks, surimplantation, armement, orientation_armement, decalage, isolateur, equipement,
                 portee]))
         super().__init__(data, columns=columns)
