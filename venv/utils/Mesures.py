@@ -37,7 +37,7 @@ def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
         dx /= 1000
         dy /= 1000
-        latitude, longitude, *alt = coord
+        latitude, longitude, alt = coord
         new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
         new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
     return [new_latitude, new_longitude, alt]

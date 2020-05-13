@@ -15,11 +15,10 @@ start = input("Appuyez sur Entrée pour choisir un fichier KML")
 Tk().withdraw()  # we don't want a full GUI, so keep the root window from appearing
 filepath, filename = chooseOpenFile()
 
-settings.init()
-
 option =''
 analised = 'Non analysé'
 while option != 'q':
+    settings.init()
     option = ''
     print("Veuillez choisir parmis les options suivantes :\n"
           "1: Analyser le fichier : {0} ({1})\n"
@@ -33,14 +32,15 @@ while option != 'q':
     if option == '1': # Analyser le fichier
         custom_dist = None
         while custom_dist == None:
-            print("Pour préciser une distance particulière (>= 31) entre les poteaux, l'indiquer ici\n"
+            print("Pour préciser une distance particulière (>= 10) entre les poteaux, l'indiquer ici\n"
                   "Sinon appuyer sur entrée ou préciser '0'\n")
             custom_dist = input("Distance : ")
-            if int(custom_dist) < 32:
-                print('La distance doit être supérieure ou égale à 32 m')
-                custom_dist = None
-            elif custom_dist != '' and custom_dist != '0':
-                settings.space_by_type['custom'] = int(custom_dist)
+            if custom_dist != '' and custom_dist != '0':
+                if int(custom_dist) < 10:
+                    print('La distance doit être supérieure ou égale à 10 m')
+                    custom_dist = None
+                else:
+                    settings.space_by_type['custom'] = int(custom_dist)
         try:
             handle = KMLHandler(filepath)
             analised = 'Analysé'
