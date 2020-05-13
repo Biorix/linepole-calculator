@@ -2,6 +2,7 @@
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from utils.KMLHandler import KMLHandler
+import settings
 
 def chooseOpenFile():
     filepath = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
@@ -9,10 +10,12 @@ def chooseOpenFile():
     return filepath, filename
 
 print("Bienvenu dans l'outil d'analyse de KML" )
-print("Appuyez sur Entrée pour choisir un fichier KML")
-start = input()
+
+start = input("Appuyez sur Entrée pour choisir un fichier KML")
 Tk().withdraw()  # we don't want a full GUI, so keep the root window from appearing
 filepath, filename = chooseOpenFile()
+
+settings.init()
 
 option =''
 analised = 'Non analysé'
@@ -28,6 +31,16 @@ while option != 'q':
     option = input("choix :  ")
 
     if option == '1': # Analyser le fichier
+        custom_dist = None
+        while custom_dist == None:
+            print("Pour préciser une distance particulière (>= 31) entre les poteaux, l'indiquer ici\n"
+                  "Sinon appuyer sur entrée ou préciser '0'\n")
+            custom_dist = input("Distance : ")
+            if int(custom_dist) < 32:
+                print('La distance doit être supérieure ou égale à 32 m')
+                custom_dist = None
+            elif custom_dist != '' and custom_dist != '0':
+                settings.space_by_type['custom'] = int(custom_dist)
         try:
             handle = KMLHandler(filepath)
             analised = 'Analysé'

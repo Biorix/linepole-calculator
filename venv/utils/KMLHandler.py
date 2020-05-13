@@ -7,14 +7,20 @@ from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
 from tqdm import trange, tqdm
 from numpy import gradient, array, transpose
-#from scipy import spatial
+import settings
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
-space_by_type = {'city':50, 'roads':100, 'hill':80, 'normal':100}
 ns = '{http://www.opengis.net/kml/2.2}'
 
 class KMLHandler(kml.KML):
     def __init__(self,kml_file):
+        """
+        A handle to manage the KML file input and augmented output
+        :param kml_file: a KML file path structured like : Documents => (Folders =>) Placemarks
+        :property outputdf: a pandas DataFrame which contain all the data
+        :property ouputkml: a kml with the divided sections (need to be generated with .generateOutput fisrt)
+        :property camelia: a pandas DataFrame structured for Camelia software
+        """
         with open(kml_file, 'rb') as file:
             doc = file.read()
         super().__init__()
@@ -91,9 +97,12 @@ class KMLHandler(kml.KML):
 
 
     def _set_sections(self):
-        func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
-        tqdm.pandas(desc = 'Creating Lines')
-        self.info_df['Line'] = self.info_df.progress_apply(func, axis=1)
+        if 'custom' in settings.space_by_type.keys():
+            func = lambda trace: Line(trace['Coordinates'], typekey='custom')
+        else:
+            func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
+        #tqdm.pandas(desc = 'Creating Lines')
+        self.info_df['Line'] = self.info_df.apply(func, axis=1)
         outputs_list = []
         for i in trange(len(self.info_df)):
             current_line = self.info_df.Line[i]
@@ -176,7 +185,7 @@ class cameliaDF(pd.DataFrame):
         empty_column = ['NaN'] * len(line_df)
         ligne = [n for n in line_df.Name.to_list()]
         type = empty_column
-        nom = [n[1] for n in line_df.Number.to_list()]
+        nom = [n for n in line_df.Number.to_list()]
         hauteur = empty_column
         altitude = list(line_df.alt.values)
         piquetage = list(gradient(line_df['Angle Horizontal'].values))
@@ -229,7 +238,7 @@ class LineSection:
     def _get_alt_profile(self, pole='n'):
         "Slice the section to get elevation every $resolution meter"
         dist_evaluated, *_ = get_dist(list(self.start), list(self.stop))
-        listCoord = sub_dist(self.start, self.stop, space_by_type[self.type], unit='m')
+        listCoord = sub_dist(self.start, self.stop, settings.space_by_type[self.type], unit='m')
         alt = get_alt(listCoord)
         for i in range(len(alt)):
             listCoord[i][-1] = alt[i]
@@ -314,7 +323,7 @@ class Line(LineSection):
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop = list_of_coord[0], list_of_coord[-1]
-        if typekey in space_by_type.keys():
+        if typekey in settings.space_by_type.keys():
             self.type = typekey
         else:
             self.type = 'normal'
