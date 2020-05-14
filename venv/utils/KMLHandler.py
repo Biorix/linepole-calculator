@@ -2,11 +2,12 @@
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
+from utils.Mesures import deg2grad
 from fastkml import kml, Document, Folder, Placemark
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
 from tqdm import trange, tqdm
-from numpy import gradient, array, transpose
+from numpy import array, transpose
 import settings
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
@@ -188,7 +189,7 @@ class cameliaDF(pd.DataFrame):
         nom = [n for n in line_df.Number.to_list()]
         hauteur = empty_column
         altitude = list(line_df.alt.values)
-        piquetage = list(gradient(line_df['Angle Horizontal'].values))
+        piquetage = list(deg2grad(line_df['Angle Horizontal'].values))
         orientation = empty_column
         fonction = empty_column
         branchement = empty_column
@@ -239,7 +240,7 @@ class LineSection:
         "Slice the section to get elevation every $resolution meter"
         dist_evaluated, *_ = get_dist(list(self.start), list(self.stop))
         listCoord = sub_dist(self.start, self.stop, settings.space_by_type[self.type], unit='m')
-        alt = get_alt(listCoord)
+        alt = get_alt([coord[:-1] for coord in listCoord])
         for i in range(len(alt)):
             listCoord[i][-1] = alt[i]
             if listCoord[i][:-1] == self.start[:-1]:
