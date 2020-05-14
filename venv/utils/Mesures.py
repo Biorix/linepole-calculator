@@ -6,6 +6,8 @@ from geopy import distance
 import math
 from scipy.optimize import fsolve
 import subprocess
+import time
+from tqdm import trange
 
 r_earth = 6371.009
 
@@ -16,22 +18,39 @@ class AltitudeRetrievingError(Exception):
         self.list = list
         self.message = ("Error while getting elevation :", err, '\n arguments : {0}'.format(list))
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
-# script for returning elevation from lat, long, based on open elevation data
-# which in turn is based on SRTM
 def get_elevation(coordList):
+    """
+    script for returning elevation from lat, long, based on open elevation data
+    which in turn is based on SRTM
+    if the list is too long it will split in chunks
+    :param coordList: list of coordinates for which the alitude wil be return
+    :return:
+    """
     coordList = [list(i) for i in coordList]
-    proc = subprocess.Popen(["curl","-d", str(coordList), "-XPOST", "-H", "Content-Type: application/json", \
-        "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
-    (elevation, err) = proc.communicate()
+    coordList_siced = chunks(coordList,200)
+    elevation = []
+    for coords_chunk in coordList_siced:
+        proc = subprocess.Popen(["curl","-d", str(coords_chunk), "-XPOST", "-H", "Content-Type: application/json", \
+            "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
+        (elevation_sliced, err) = proc.communicate()
+        if err == None and b'Too Many Request' not in elevation_sliced:
+            try:
+                elevation += eval(elevation_sliced)
+            except:
+                print("Error while getting elevation :", err, elevation)
+                raise AltitudeRetrievingError(err, coordList)
+        elif b'Too Many Request' in elevation_sliced:
+            print("Error while getting elevation :", err, elevation)
+            raise AltitudeRetrievingError(err, coordList)
+        time.sleep(0.5)
+        
+    return elevation
 
-    if err == None and b'Too Many Request' not in elevation:
-        return eval(elevation)
-    elif b'Too Many Request' in elevation:
-        return get_elevation(coordList)
-    else:
-        print("Error while getting elevation :", err, elevation)
-        raise AltitudeRetrievingError(err,coordList)
 
 def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
@@ -146,11 +165,43 @@ def get_angle_between_two_lines(coord1, coord2, coord3):
     _, _, angle2 = get_xy_ground_distance(coord2, coord3)
     return abs(math.degrees(angle2) - math.degrees(angle1))
 
+def grad2deg(angle_in_grad):
+    """
+    Convert angle in grad in degree
+    :param angle_in_grad: float
+    :return: float angle in degree
+    """
+    return angle_in_grad*0.9
+
+
+def deg2grad(angle_in_degrees):
+    """
+    Convert angle in degrees in grad
+    :param angle_in_degrees: float
+    :return: float angle in grad
+    """
+    return angle_in_degrees/0.9
+
+def grad2rad(angle_in_grad):
+    """
+    Convert angle in grad in radians
+    :param angle_in_grad: float
+    :return: float angle in radians
+    """
+    return math.radians(grad2deg(angle_in_grad))
+
+def rad2grad(angle_in_rad):
+    """
+    Convert angle in radians in grad
+    :param angle_in_rad: float
+    :return: float angle in radians
+    """
+    return deg2grad(math.degrees(angle_in_rad))
+
 if __name__ == "__main__":
     #get_elevation(11.430555, -12.682673)
     listTest = [[11.466135, -12.616524, 0],[11.489022, -12.538672, 0]]
     start = [11.466135, -12.616524, 0]
-    print(coordinates_solver(50,start, listTest[1:]))
     print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
     a = get_elevation([[11.447561, -12.672399],[11.446225,-12.672896]])
     print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
