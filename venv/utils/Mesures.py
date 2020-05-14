@@ -24,6 +24,7 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def get_elevation(coordList):
+    # TODO: handle the error with "Too mnay Request "
     coordList = [list(i) for i in coordList]
     proc = subprocess.Popen(["curl","-d", str(coordList), "-XPOST", "-H", "Content-Type: application/json", \
         "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
@@ -35,6 +36,9 @@ def get_elevation(coordList):
     elif elevation == b'' or b'<' in elevation or b'>' in elevation:
         print("Error while getting elevation :", err, elevation)
         raise AltitudeRetrievingError(err, elevation)
+    else:
+        return eval(elevation)
+    time.sleep(0.5)
 
 def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
