@@ -24,33 +24,17 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def get_elevation(coordList):
-    """
-    script for returning elevation from lat, long, based on open elevation data
-    which in turn is based on SRTM
-    if the list is too long it will split in chunks
-    :param coordList: list of coordinates for which the alitude wil be return
-    :return:
-    """
     coordList = [list(i) for i in coordList]
-    coordList_siced = chunks(coordList,200)
-    elevation = []
-    for coords_chunk in coordList_siced:
-        proc = subprocess.Popen(["curl","-d", str(coords_chunk), "-XPOST", "-H", "Content-Type: application/json", \
-            "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
-        (elevation_sliced, err) = proc.communicate()
-        if err == None and b'Too Many Request' not in elevation_sliced:
-            try:
-                elevation += eval(elevation_sliced)
-            except:
-                print("Error while getting elevation :", err, elevation)
-                raise AltitudeRetrievingError(err, coordList)
-        elif b'Too Many Request' in elevation_sliced:
-            print("Error while getting elevation :", err, elevation)
-            raise AltitudeRetrievingError(err, coordList)
-        time.sleep(0.5)
-        
-    return elevation
+    proc = subprocess.Popen(["curl","-d", str(coordList), "-XPOST", "-H", "Content-Type: application/json", \
+        "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
+    (elevation, err) = proc.communicate()
 
+    if err != None or b'Too Many Requests' in elevation:
+        print("Too many requests :", err, elevation)
+        raise AltitudeRetrievingError(err, 'Too many requests')
+    elif elevation == b'' or b'<' in elevation or b'>' in elevation:
+        print("Error while getting elevation :", err, elevation)
+        raise AltitudeRetrievingError(err, elevation)
 
 def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
@@ -202,6 +186,7 @@ if __name__ == "__main__":
     #get_elevation(11.430555, -12.682673)
     listTest = [[11.466135, -12.616524, 0],[11.489022, -12.538672, 0]]
     start = [11.466135, -12.616524, 0]
+    print(coordinates_solver(50,start, listTest[1:]))
     print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
     a = get_elevation([[11.447561, -12.672399],[11.446225,-12.672896]])
     print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
