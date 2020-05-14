@@ -3,6 +3,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from utils.KMLHandler import KMLHandler
 import settings
+import traceback
 
 def chooseOpenFile():
     filepath = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
@@ -45,6 +46,7 @@ while option != 'q':
             handle = KMLHandler(filepath)
             analised = 'Analysé'
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
     elif option == '2': # Choisir un autre fichier
         filepath, filename = chooseOpenFile()
@@ -59,6 +61,7 @@ while option != 'q':
             f.write(repr(handle))
             f.close()
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
     elif option == '4': # Générer un CSV pour Camelia
         try:
@@ -67,6 +70,7 @@ while option != 'q':
             output_filename = asksaveasfilename(defaultextension='.csv')
             camelia.to_csv(output_filename)
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
     elif option == '5': # Générer un CSV avec toutes les données
         try:
@@ -74,4 +78,5 @@ while option != 'q':
             output_filename = asksaveasfilename(defaultextension='.csv')
             df.to_csv(output_filename)
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
