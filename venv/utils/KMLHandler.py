@@ -149,7 +149,9 @@ class KMLHandler(kml.KML):
             Line = self.info_df[self.info_df.Trace == name]['Outputs'].values[0]
             outplacemark = kml.Placemark(ns, id, name, desc)
             outplacemark.geometry = LineString(Line)
-            out_nsfolder.append(placemark)
+            #outplacemark.geometry.tessellate = 1 retiré pour l'instant car non pris en compte dans la fastkml
+            # tout de même fonctionnel car les coordonnées en z sont dans le KML
+            out_nsfolder.append(outplacemark)
 
             out_points_folder = kml.Folder(ns, id, name='Poteaux')
             for point in Line:
