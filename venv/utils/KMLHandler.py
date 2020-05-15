@@ -9,6 +9,7 @@ import pandas as pd
 from tqdm import trange, tqdm
 from numpy import array, transpose
 import settings
+from copy import deepcopy
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 ns = '{http://www.opengis.net/kml/2.2}'
@@ -49,7 +50,7 @@ class KMLHandler(kml.KML):
 
     def _get_outputdf(self):
         keys = self.info_df['Trace'].values.tolist()
-        frame = [line.df for line in self.info_df['Line'].values.tolist()]
+        frame = deepcopy([line.df for line in self.info_df['Line'].values.tolist()])
         for i in range(len(frame)):
             df = frame[i]
             df.insert(0,'Number', range(len(df)))

@@ -24,7 +24,6 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 def get_elevation(coordList):
-    # TODO: handle the error with "Too mnay Request "
     coordList = [list(i) for i in coordList]
     coordList_siced = chunks(coordList, 100)
     elevation = []
