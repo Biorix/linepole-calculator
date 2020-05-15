@@ -26,19 +26,26 @@ def chunks(lst, n):
 def get_elevation(coordList):
     # TODO: handle the error with "Too mnay Request "
     coordList = [list(i) for i in coordList]
-    proc = subprocess.Popen(["curl","-d", str(coordList), "-XPOST", "-H", "Content-Type: application/json", \
-        "https://elevation.racemap.com/api" ], stdout=subprocess.PIPE, shell=True)
-    (elevation, err) = proc.communicate()
+    coordList_siced = chunks(coordList, 100)
+    elevation = []
+    for coords_chunk in coordList_siced:
+        proc = subprocess.Popen(["curl", "-d", str(coords_chunk), "-XPOST", "-H", "Content-Type: application/json", \
+                                 "https://elevation.racemap.com/api"], stdout=subprocess.PIPE, shell=True)
+        (elevation_sliced, err) = proc.communicate()
 
-    if err != None or b'Too Many Requests' in elevation:
-        print("Too many requests :", err, elevation)
-        raise AltitudeRetrievingError(err, 'Too many requests')
-    elif elevation == b'' or b'<' in elevation or b'>' in elevation:
-        print("Error while getting elevation :", err, elevation)
-        raise AltitudeRetrievingError(err, elevation)
-    else:
-        return eval(elevation)
-    time.sleep(0.5)
+        if err != None or b'Too Many Requests' in elevation_sliced:
+            try:
+                elevation += get_elevation(coords_chunk)
+            except:
+                print("Too many requests :", err, elevation_sliced)
+                raise AltitudeRetrievingError(err, 'Too many requests')
+        elif elevation_sliced == b'' or b'<' in elevation_sliced or b'>' in elevation_sliced:
+            print("Error while getting elevation :", err, elevation)
+            raise AltitudeRetrievingError(err, elevation_sliced)
+        else:
+            elevation += eval(elevation_sliced)
+
+    return elevation
 
 def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
