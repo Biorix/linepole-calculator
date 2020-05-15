@@ -42,7 +42,7 @@ ipykernel==4.9.0
 ipython==5.8.0
 ipython-genutils==0.2.0
 ipywidgets==6.0.0
-Jinja2==2.10
+Jinja2==2.10.1
 jsonschema==2.6.0
 jupyter==1.0.0
 jupyter-client==5.2.4
@@ -72,7 +72,7 @@ pandocfilters==1.4.2
 patsy==0.5.1
 pexpect==4.6.0
 pickleshare==0.7.5
-Pillow==6.1.0
+Pillow==6.2.2
 plotnine==0.6.0
 prometheus-client==0.6.0
 prompt-toolkit==1.0.15
@@ -121,7 +121,7 @@ tk==0.1.0
 tornado==5.1.1
 tqdm==4.46.0
 traitlets==4.3.2
-Twisted==18.9.0
+Twisted==20.3.0
 ubuntu-advantage-tools==19.5
 ubuntu-drivers-common==0.0.0
 ufw==0.36
