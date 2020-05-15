@@ -133,7 +133,7 @@ def get_xy_ground_distance(coord1, coord2, unit='m'):
 
 def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
-    Give coordinates between two coordinates seperated by the given distance
+    Give coordinates between two coordinates separated by the given distance
     :param coord1: float: first coord
     :param coord2: float: second coord
     :param distance: distance in given unit (default meter)
@@ -142,10 +142,11 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
     dist_tot = distance.geodesic(coord1, coord2).m
     x_dist, y_dist, angle = get_xy_ground_distance(coord1,coord2, unit=unit)
-    dy = math.sin(angle) * space
-    dx = math.cos(angle) * space
 
     number = abs(int(dist_tot // space))
+    dy = math.sin(angle) * dist_tot/number
+    dx = math.cos(angle) * dist_tot/number
+
     coordList = [list(coord1)]
     for i in range(number):
         coordList.append(addToCoord(coordList[i],dx,dy))
@@ -192,11 +193,11 @@ def rad2grad(angle_in_rad):
     """
     return deg2grad(math.degrees(angle_in_rad))
 
-if __name__ == "__main__":
-    #get_elevation(11.430555, -12.682673)
-    listTest = [[11.466135, -12.616524, 0],[11.489022, -12.538672, 0]]
-    start = [11.466135, -12.616524, 0]
-    print(coordinates_solver(50,start, listTest[1:]))
-    print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
-    a = get_elevation([[11.447561, -12.672399],[11.446225,-12.672896]])
-    print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
+# if __name__ == "__main__":
+#     #get_elevation(11.430555, -12.682673)
+#     listTest = [[11.466135, -12.616524, 0],[11.489022, -12.538672, 0]]
+#     start = [11.466135, -12.616524, 0]
+#     print(coordinates_solver(50,start, listTest[1:]))
+#     print(get_distance_with_altitude((11.447561, -12.672399, 1008),(11.446225,-12.672896,1052),unit='m'))
+#     a = get_elevation([[11.447561, -12.672399],[11.446225,-12.672896]])
+#     print(get_subcoord_dist((11.447561, -12.672399),(11.446225,-12.672896),5))
