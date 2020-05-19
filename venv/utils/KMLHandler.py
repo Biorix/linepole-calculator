@@ -3,13 +3,14 @@ from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude a
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from utils.Mesures import deg2grad
-from fastkml import kml, Document, Folder, Placemark
+from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
 from tqdm import trange, tqdm
 from numpy import array, transpose
 import settings
 from copy import deepcopy
+import random
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 ns = '{http://www.opengis.net/kml/2.2}'
@@ -147,7 +148,9 @@ class KMLHandler(kml.KML):
             out_nsfolder = kml.Folder(ns, id, name, desc)
             # creating placemarks (points and LineString)
             Line = self.info_df[self.info_df.Trace == name]['Outputs'].values[0]
-            outplacemark = kml.Placemark(ns, id, name, desc)
+            ls = styles.LineStyle(ns=ns, id=id, color=self._random_color_gen(), width=3)
+            s1 = styles.Style(styles = [ls])
+            outplacemark = kml.Placemark(ns, id, name, desc, styles=[s1])
             outplacemark.geometry = LineString(Line)
             #outplacemark.geometry.tessellate = 1 retiré pour l'instant car non pris en compte dans la fastkml
             # tout de même fonctionnel car les coordonnées en z sont dans le KML
@@ -172,6 +175,10 @@ class KMLHandler(kml.KML):
         for coord in coordTuple:
             outList.append(tuple([coord[1],coord[0],coord[2]]))
         return tuple(outList)
+
+    def _random_color_gen(self):
+        r = lambda: random.randint(0, 255)
+        return 'ff%02X%02X%02X' % (r(), r(), r())
 
 
     def _output_coord(self, Line):
