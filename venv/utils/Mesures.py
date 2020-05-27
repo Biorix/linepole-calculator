@@ -8,6 +8,8 @@ from scipy.optimize import fsolve
 import subprocess
 import time
 from tqdm import trange
+from shapely.geometry import LineString, MultiPoint
+from shapely.ops import split
 
 r_earth = 6371.009
 
@@ -25,9 +27,9 @@ def chunks(lst, n):
 
 def get_elevation(coordList):
     coordList = [list(i) for i in coordList]
-    coordList_siced = chunks(coordList, 100)
+    coordList_sliced = chunks(coordList, 100)
     elevation = []
-    for coords_chunk in coordList_siced:
+    for coords_chunk in coordList_sliced:
         proc = subprocess.Popen(["curl", "-d", str(coords_chunk), "-XPOST", "-H", "Content-Type: application/json", \
                                  "https://elevation.racemap.com/api"], stdout=subprocess.PIPE, shell=True)
         (elevation_sliced, err) = proc.communicate()
@@ -136,23 +138,30 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     Give coordinates between two coordinates separated by the given distance
     :param coord1: float: first coord
     :param coord2: float: second coord
-    :param distance: distance in given unit (default meter)
+    :param space: distance in given unit (default meter)
     :param unit: string:name of the returned unit i.e : "km", "miles", "m"
     :return: a list of coordinates
     """
     dist_tot = distance.geodesic(coord1, coord2).m
+
     x_dist, y_dist, angle = get_xy_ground_distance(coord1,coord2, unit=unit)
 
-    number = abs(int(dist_tot // space))
-    dy = math.sin(angle) * dist_tot/number
-    dx = math.cos(angle) * dist_tot/number
+    number = round(abs(dist_tot / space))
 
-    coordList = [list(coord1)]
-    for i in range(number):
-        coordList.append(addToCoord(coordList[i],dx,dy))
-    if dist_tot % space != 0:
-        coordList.append(list(coord2))
-    return coordList
+    if number <= 1:
+        return [list(coord1), list(coord2)]
+
+    line = LineString([coord1[:-1], coord2[:-1]])
+    splitter = MultiPoint([line.interpolate((i / number), normalized=True) for i in range(1, number)])
+    wkt = splitter.wkt.replace('MULTIPOINT','').replace('(','').replace(')','').split(',')
+    coordlist_str = [point.replace(' ','',1).split(' ') for point in wkt]
+    coordlist = [list(map(float, coord_str)) for coord_str in coordlist_str]
+    [coord.append(0.0) for coord in coordlist]
+
+    coordlist.insert(0, list(coord1))
+    coordlist.append(list(coord2))
+
+    return coordlist
 
 
 def get_angle_between_two_lines(coord1, coord2, coord3):

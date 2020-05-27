@@ -247,7 +247,7 @@ class LineSection:
             return self.df[self.df.index == item]
 
     def _get_alt_profile(self, pole='n'):
-        "Slice the section to get elevation every $resolution meter"
+        "Slice the section to get elevation every ${space} meter"
         dist_evaluated, *_ = get_dist(list(self.start), list(self.stop))
         listCoord = sub_dist(self.start, self.stop, settings.space_by_type[self.type], unit='m')
         alt = get_alt([coord[:-1] for coord in listCoord])
