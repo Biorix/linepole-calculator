@@ -11,6 +11,7 @@ from numpy import array, transpose
 import settings
 from copy import deepcopy
 import random
+from colour import Color
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
 ns = '{http://www.opengis.net/kml/2.2}'
@@ -179,6 +180,17 @@ class KMLHandler(kml.KML):
     def _random_color_gen(self):
         r = lambda: random.randint(0, 255)
         return 'ff%02X%02X%02X' % (r(), r(), r())
+
+    def _color_range_gen(self, range_):
+        base = Color(self._random_color_gen().replace('ff','#', 1))
+        finale = Color(self._random_color_gen().replace('ff','#', 1))
+        output_colors = []
+        for c in list(base.range_to(finale, range_)):
+            c = '%s' % c
+            output_colors.append(c.replace('#','ff',1))
+
+        return output_colors
+
 
 
     def _output_coord(self, Line):
@@ -360,14 +372,3 @@ class Line(LineSection):
             angle_list.append(get_angle(self.list_of_coord[i-1], self.list_of_coord[i], self.list_of_coord[i+1]))
         angle_list.append(0)
         self.df['Angle Horizontal'] = angle_list
-
-# if __name__ == "__main__":
-#
-#
-#     Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-#     filename = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
-#
-#     handle = KMLHandler(filename)
-#     output = handle.outputkml
-#     print(output.to_string(prettyprint=True))
-#     print('OK')
