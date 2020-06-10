@@ -39,13 +39,28 @@ class KMLHandler(kml.KML):
             self.Placemarks = self._set_placemarks(self.Documents)
 
         self._set_dataframe()
-        self._set_sections()
 
     def __repr__(self):
         return self.outputkml.to_string(prettyprint=True)
 
     def __str__(self):
         return self.outputkml.to_string(prettyprint=True)
+
+    def generatePoles(self):
+        self._set_sections()
+
+    def generateOffsets(self, offset, dist_max):
+        func = lambda trace: LineString(trace['Coordinates'])
+        parRight = lambda linestring: linestring.parallel_offset(offset, 'right', join_style=2)
+        parLeft = lambda linestring: linestring.parallel_offset(offset, 'left', join_style=2)
+        self.info_df['LineString'] = self.info_df.apply(func, axis=1)
+        self.info_df['Parallel_line_r'] = self.info_df.apply(parRight, axis=1)
+        self.info_df['Parallel_line_l'] = self.info_df.apply(parLeft, axis=1)
+        parallel_line = []
+        for i in range(dist_max // offset):
+            parallel
+
+
 
     def generateOutput(self):
         self.outputkml = self._get_output_kml()
