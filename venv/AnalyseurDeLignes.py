@@ -60,9 +60,11 @@ while option != 'q':
                             settings.space_by_type['custom'] = int(custom_dist)
                 try:
                     handle.generatePoles()
+                    suboption = 'r'
                 except Exception as e:
                     print(traceback.format_exc())
                     print(e)
+                    suboption = 'r'
 
             elif suboption == '2':
                 #parallel lines
@@ -90,10 +92,12 @@ while option != 'q':
                         else:
                             max_dist = custom_dist_max
                 try:
-                    handle.generateOffsets(offset, max_dist)
+                    add_offset_kml(offset, max_dist)
+                    suboption = 'r'
                 except Exception as e:
                     print(traceback.format_exc())
                     print(e)
+                    suboption = 'r'
 
     elif option == '2': # Choisir un autre fichier
         filepath, filename = chooseOpenFile()

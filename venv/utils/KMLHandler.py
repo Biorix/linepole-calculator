@@ -3,6 +3,7 @@ from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude a
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from utils.Mesures import deg2grad
+from utils.KMLutils import openKML
 from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
@@ -25,11 +26,8 @@ class KMLHandler(kml.KML):
         :property ouputkml: a kml with the divided sections (need to be generated with .generateOutput fisrt)
         :property camelia: a pandas DataFrame structured for Camelia software
         """
-        with open(kml_file, 'rb') as file:
-            doc = file.read()
         super().__init__()
-        self.inputKML = kml.KML()
-        self.inputKML.from_string(doc)
+        self.inputKML = openKML(kml_file)
 
         self.Documents = self._set_documents()
         self.Folders = self._set_folders(self.Documents)
@@ -48,19 +46,6 @@ class KMLHandler(kml.KML):
 
     def generatePoles(self):
         self._set_sections()
-
-    def generateOffsets(self, offset, dist_max):
-        func = lambda trace: LineString(trace['Coordinates'])
-        parRight = lambda linestring: linestring.parallel_offset(offset, 'right', join_style=2)
-        parLeft = lambda linestring: linestring.parallel_offset(offset, 'left', join_style=2)
-        self.info_df['LineString'] = self.info_df.apply(func, axis=1)
-        self.info_df['Parallel_line_r'] = self.info_df.apply(parRight, axis=1)
-        self.info_df['Parallel_line_l'] = self.info_df.apply(parLeft, axis=1)
-        parallel_line = []
-        for i in range(dist_max // offset):
-            parallel
-
-
 
     def generateOutput(self):
         self.outputkml = self._get_output_kml()
