@@ -2,7 +2,7 @@
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
-from utils.Mesures import deg2grad
+from utils.Mesures import deg2grad, addToCoord
 from utils.KMLutils import openKML, random_color_gen
 from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
@@ -49,6 +49,14 @@ class KMLHandler(kml.KML):
 
     def generateOutput(self):
         self.outputkml = self._get_output_kml()
+
+    def generateOffset(self, offset, max_dist):
+        settings.space_by_type['custom'] = 1000000
+        for trace in self.info_df['Trace']:
+            coord = list(map(addToCoord, ))
+            info = pd.Series({'Trace': trace.Name, 'Coordinates': trace.Name, 'Type': pmdesc})
+        self._set_sections()
+
 
     def _get_outputdf(self):
         keys = self.info_df['Trace'].values.tolist()
