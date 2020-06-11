@@ -2,6 +2,7 @@
 from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude as get_dist, get_subcoord_dist as sub_dist
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
+from utils.Mesures import get_xy_ground_distance as xy_dist
 from utils.Mesures import deg2grad, addToCoord
 from utils.KMLutils import openKML, random_color_gen
 from fastkml import kml, Document, Folder, Placemark, styles
@@ -12,6 +13,7 @@ from numpy import array, transpose
 import settings
 from copy import deepcopy
 import random
+import math
 from colour import Color
 
 resolution = 25 #résolution pour déterminer l'altitude en metres
@@ -51,6 +53,16 @@ class KMLHandler(kml.KML):
         self.outputkml = self._get_output_kml()
 
     def generateOffset(self, offset, max_dist):
+        """
+        Generate parallel lines every offset until max_dist is reach
+        number of line on each side is max_dist // offset
+        :param offset: offset from the previous line in meter
+        :type offset: float or int
+        :param max_dist: maximum distance from the base line
+        :type max_dist: float or int
+        :return: kml content
+        :rtype: str
+        """
         settings.space_by_type['custom'] = 1000000
         for trace in self.info_df['Trace']:
             coord = list(map(addToCoord, ))
@@ -238,8 +250,8 @@ class LineSection:
         """
         self.start, self.stop, self.type = coord1, coord2, typekey
         self.df = pd.DataFrame(self._get_alt_profile(pole='y'), columns=['lat', 'long', 'alt', 'descr'])
-        func = lambda row: self.distance_from_origine([row.lat, row.long, row.alt])
-        #self.df['dist_from_origin'] = self.df.apply(func,axis=1)
+        if offset == 'y':
+            self.addOffset(offset, offset_max_dist)
         self._set_prev_azi_angles()
 
     def __get__(self, instance, owner):
@@ -270,7 +282,7 @@ class LineSection:
         return listCoord
 
     def _get_pole_points(self):
-        return self.df[self.df.desr == 'pole']
+        return self.df[self.df.descr == 'pole']
 
     def _get_total_dist(self, list_of_coordAlt=None):
         tot_dist = 0
@@ -325,6 +337,24 @@ class LineSection:
             return 0
         else:
             return (self[index]['dist_from_origin'].values - self[index-1]['dist_from_origin'].values)[0]
+
+    def addOffset(self, offset, max_dist):
+        offset_list = []
+        for index, row in self.df.iterrows():
+            coord1 = row[['lat', 'long', 'alt']].values.tolist()
+            coord2 = self[index][['lat', 'long', 'alt']].values.tolist()[0]
+            _, _, theta = xy_dist(coord1, coord2)
+            phi = math.pi - theta
+            dist = offset
+            x_offsets = []
+            y_offsets = []
+            while dist <= max_dist:
+                x_offsets.append(dist / math.sin(theta))
+                y_offsets.append(dist / math.sin(phi))
+                dist += offset
+
+        self.df['Azimut Angle'] = angleList
+
 
     list_of_coord = property(_get_list_of_coord)
     pole_points = property(_get_pole_points)
