@@ -3,7 +3,7 @@ from utils.Mesures import get_elevation as get_alt, get_distance_with_altitude a
 from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from utils.Mesures import deg2grad
-from utils.KMLutils import openKML
+from utils.KMLutils import openKML, random_color_gen
 from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
@@ -149,7 +149,7 @@ class KMLHandler(kml.KML):
             out_nsfolder = kml.Folder(ns, id, name, desc)
             # creating placemarks (points and LineString)
             Line = self.info_df[self.info_df.Trace == name]['Outputs'].values[0]
-            ls = styles.LineStyle(ns=ns, id=id, color=self._random_color_gen(), width=3)
+            ls = styles.LineStyle(ns=ns, id=id, color=random_color_gen(), width=3)
             s1 = styles.Style(styles = [ls])
             outplacemark = kml.Placemark(ns, id, name, desc, styles=[s1])
             outplacemark.geometry = LineString(Line)
@@ -176,21 +176,6 @@ class KMLHandler(kml.KML):
         for coord in coordTuple:
             outList.append(tuple([coord[1],coord[0],coord[2]]))
         return tuple(outList)
-
-    def _random_color_gen(self):
-        r = lambda: random.randint(0, 255)
-        return 'ff%02X%02X%02X' % (r(), r(), r())
-
-    def _color_range_gen(self, range_):
-        base = Color(self._random_color_gen().replace('ff','#', 1))
-        finale = Color(self._random_color_gen().replace('ff','#', 1))
-        output_colors = []
-        for c in list(base.range_to(finale, range_)):
-            c = '%s' % c
-            output_colors.append(c.replace('#','ff',1))
-
-        return output_colors
-
 
 
     def _output_coord(self, Line):
