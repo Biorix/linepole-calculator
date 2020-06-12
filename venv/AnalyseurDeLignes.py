@@ -41,7 +41,7 @@ while option != 'q':
         suboption = ''
         while suboption != 'r':
             print("Veuillez choisir parmis les options suivantes :\n"
-                  "1: Générer les position des poteaux\n"
+                  "1: Générer les positions des poteaux\n"
                   "2: Générer des lignes parallèles\n"
                   "r: retour\n")
             suboption = input("choix :  ")
@@ -92,7 +92,7 @@ while option != 'q':
                         else:
                             max_dist = custom_dist_max
                 try:
-                    add_offset_kml(offset, max_dist)
+                    handle.generateOffset(offset, max_dist)
                     suboption = 'r'
                 except Exception as e:
                     print(traceback.format_exc())

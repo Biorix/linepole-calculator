@@ -29,6 +29,7 @@ class KMLHandler(kml.KML):
         :property camelia: a pandas DataFrame structured for Camelia software
         """
         super().__init__()
+        self.offset = False
         self.inputKML = openKML(kml_file)
 
         self.Documents = self._set_documents()
@@ -63,11 +64,9 @@ class KMLHandler(kml.KML):
         :return: kml content
         :rtype: str
         """
-        settings.space_by_type['custom'] = 1000000
-        for trace in self.info_df['Trace']:
-            coord = list(map(addToCoord, ))
-            info = pd.Series({'Trace': trace.Name, 'Coordinates': trace.Name, 'Type': pmdesc})
-        self._set_sections()
+        settings.space_by_type['offset'] = 1000000
+        self._set_sections(offset, max_dist)
+        self.offset = True
 
 
     def _get_outputdf(self):
@@ -120,9 +119,12 @@ class KMLHandler(kml.KML):
         self.info_df = info_df
 
 
-    def _set_sections(self):
+    def _set_sections(self, offset=None, offset_max_dist=None):
         if 'custom' in settings.space_by_type.keys():
             func = lambda trace: Line(trace['Coordinates'], typekey='custom')
+        elif 'offset' in settings.space_by_type.keys():
+            func = lambda trace: Line(trace['Coordinates'], typekey='offset',
+                                      offset=offset, offset_max_dist=offset_max_dist)
         else:
             func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
         #tqdm.pandas(desc = 'Creating Lines')
@@ -199,6 +201,8 @@ class KMLHandler(kml.KML):
 
 
     def _output_coord(self, Line):
+        if self.offset == True:
+            return Line.df[['long', 'lat', 'alt']].values.tolist()
         return Line.df[Line.df['descr'] == 'Pole'][['long','lat','alt']].values.tolist()
 
     outputdf = property(_get_outputdf)
@@ -241,7 +245,7 @@ class cameliaDF(pd.DataFrame):
 
 
 class LineSection:
-    def __init__(self, coord1, coord2, typekey='normal'):
+    def __init__(self, coord1, coord2, typekey='normal', offset=None, offset_max_dist=None):
         """
         Object that represent a section of LineString between two coordinates
         :param coord1: tuple or list:(lat, long)
@@ -249,10 +253,12 @@ class LineSection:
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop, self.type = coord1, coord2, typekey
-        self.df = pd.DataFrame(self._get_alt_profile(pole='y'), columns=['lat', 'long', 'alt', 'descr'])
-        if offset == 'y':
+        if typekey == 'offset':
+            self.df = pd.DataFrame(self._get_alt_profile(pole='n'), columns=['lat', 'long', 'alt', 'descr'])
             self.addOffset(offset, offset_max_dist)
-        self._set_prev_azi_angles()
+        else:
+            self.df = pd.DataFrame(self._get_alt_profile(pole='y'), columns=['lat', 'long', 'alt', 'descr'])
+            self._set_prev_azi_angles()
 
     def __get__(self, instance, owner):
         return self.df
@@ -326,7 +332,7 @@ class LineSection:
         angleList = [0]
         for index, row in self.df.iterrows():
             if index != 0:
-                coord1 = row[['lat', 'long', 'alt']].values.tolist()
+                coord1 = self[index][['lat', 'long', 'alt']].values.tolist()[0]
                 coord2 = self[index -1][['lat', 'long', 'alt']].values.tolist()[0]
                 _, angle = get_dist(coord1, coord2)
                 angleList.append(angle)
@@ -339,21 +345,28 @@ class LineSection:
             return (self[index]['dist_from_origin'].values - self[index-1]['dist_from_origin'].values)[0]
 
     def addOffset(self, offset, max_dist):
-        offset_list = []
-        for index, row in self.df.iterrows():
-            coord1 = row[['lat', 'long', 'alt']].values.tolist()
-            coord2 = self[index][['lat', 'long', 'alt']].values.tolist()[0]
-            _, _, theta = xy_dist(coord1, coord2)
-            phi = math.pi - theta
-            dist = offset
-            x_offsets = []
-            y_offsets = []
-            while dist <= max_dist:
-                x_offsets.append(dist / math.sin(theta))
-                y_offsets.append(dist / math.sin(phi))
-                dist += offset
-
-        self.df['Azimut Angle'] = angleList
+        nb_line = int(max_dist // offset)
+        start_offset_r, start_offset_l = [], []
+        stop_offset_r, stop_offset_l = [], []
+        coord1 = self.start
+        coord2 = self.stop
+        _, _, theta = xy_dist(coord1, coord2)
+        phi = math.pi/2 - theta
+        dist = offset
+        x_offsets = []
+        y_offsets = []
+        while dist <= max_dist:
+            x_offsets.append(dist / math.sin(theta))
+            y_offsets.append(dist / math.sin(phi))
+            dist += offset
+        for i in range(nb_line):
+            start_offset_r.append(addToCoord(coord1, x_offsets[i], y_offsets[i]))
+            start_offset_l.append(addToCoord(coord1, -x_offsets[i], -y_offsets[i]))
+            stop_offset_r.append(addToCoord(coord2, x_offsets[i], y_offsets[i]))
+            stop_offset_l.append(addToCoord(coord2, -x_offsets[i], -y_offsets[i]))
+        for i in range(nb_line):
+            self.df['offset_l_%i' % i] = [start_offset_l[i], stop_offset_l[i]]
+            self.df['offset_r_%i' % i] = [start_offset_r[i], stop_offset_r[i]]
 
 
     list_of_coord = property(_get_list_of_coord)
@@ -362,13 +375,14 @@ class LineSection:
 
 
 class Line(LineSection):
-    def __init__(self, list_of_coord, typekey='normal'):
+    def __init__(self, list_of_coord, typekey='normal', offset=None, offset_max_dist=None):
         """
         Complete line composed of linesecions
         :param list_of_coord: list of list: (lat, long, alt)
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop = list_of_coord[0], list_of_coord[-1]
+        self.offset, self.offset_max_dist = offset, offset_max_dist
         if typekey in settings.space_by_type.keys():
             self.type = typekey
         else:
@@ -385,7 +399,8 @@ class Line(LineSection):
     def _set_dataframe(self, list_of_coord):
         ls_list = []
         for i in trange(1, len(list_of_coord), 1):
-            ls = LineSection(list_of_coord[i-1], list_of_coord[i],typekey=self.type)
+            ls = LineSection(list_of_coord[i-1], list_of_coord[i],typekey=self.type,
+                             offset=self.offset, offset_max_dist=self.offset_max_dist)
             ls_list.append(ls[:-1])
         return pd.concat(ls_list, ignore_index=True, sort=False)
 
