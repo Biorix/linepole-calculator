@@ -128,6 +128,8 @@ def get_xy_ground_distance(coord1, coord2, unit='m'):
         x_dist *= -1
     if x_dist < 0 or y_dist < 0:
         angle = math.atan2(y_dist, x_dist)
+    elif x_dist == 0:
+        return x_dist, y_dist, 0.0001
     else:
         angle = math.atan(y_dist/ x_dist)
 
