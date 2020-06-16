@@ -74,7 +74,8 @@ while option != 'q':
                     print("Précisez une distance particulière entre les lignes parallèles (défaut 2.0 m)\n")
                     custom_offset = input("Distance : ")
                     if custom_offset != '' and custom_offset != '0':
-                        if int(custom_offset) >= 0:
+                        custom_offset = float(custom_offset)
+                        if not custom_offset >= 0:
                             print('La distance doit être un nombre')
                             custom_offset = None
                         else:
@@ -86,7 +87,8 @@ while option != 'q':
                           "(défaut 6.0 m)\n")
                     custom_dist_max = input("Distance : ")
                     if custom_dist_max != '' and custom_dist_max != '0':
-                        if int(custom_dist_max) >= 0:
+                        custom_dist_max = float(custom_offset)
+                        if not custom_dist_max >= 0:
                             print('La distance doit être un nombre')
                             custom_dist_max = None
                         else:
