@@ -123,6 +123,7 @@ class KMLHandler(kml.KML):
         if 'custom' in settings.space_by_type.keys():
             func = lambda trace: Line(trace['Coordinates'], typekey='custom')
         elif 'offset' in settings.space_by_type.keys():
+            self.offset = True
             func = lambda trace: Line(trace['Coordinates'], typekey='offset',
                                       offset=offset, offset_max_dist=offset_max_dist)
         else:
@@ -348,8 +349,8 @@ class LineSection:
         nb_line = int(max_dist // offset)
         start_offset_r, start_offset_l = [], []
         stop_offset_r, stop_offset_l = [], []
-        coord1 = self.start
-        coord2 = self.stop
+        coord1, coord2 = list(self.start), list(self.stop)
+        coord1[-1],coord2[-1] = get_alt([self.start, self.stop])
         _, _, theta = xy_dist(coord1, coord2)
         phi = math.pi/2 - theta
         dist = offset
