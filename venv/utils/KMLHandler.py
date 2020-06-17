@@ -128,8 +128,15 @@ class KMLHandler(kml.KML):
                                       offset=offset, offset_max_dist=offset_max_dist)
         else:
             func = lambda trace: Line(trace['Coordinates'],typekey=trace['Type'])
-        #tqdm.pandas(desc = 'Creating Lines')
         self.info_df['Line'] = self.info_df.apply(func, axis=1)
+
+        try:
+            self._add_offset_to_df()
+        except IndexError as e:
+            #print(traceback.format_exc())
+            print(e)
+            pass
+
         outputs_list = []
         for i in trange(len(self.info_df)):
             current_line = self.info_df.Line[i]
@@ -184,7 +191,7 @@ class KMLHandler(kml.KML):
             for point in Line:
                 id = str(Line.index(point))
                 name = placemark.name + str(id)
-                desc = 'Electrique Pole'
+                desc = 'Electric Pole'
                 outpoint = kml.Placemark(ns, id, name, desc)
                 outpoint.geometry = Point(point)
                 out_points_folder.append(outpoint)
@@ -202,9 +209,18 @@ class KMLHandler(kml.KML):
 
 
     def _output_coord(self, Line):
-        if self.offset == True:
-            return Line.df[['long', 'lat', 'alt']].values.tolist()
-        return Line.df[Line.df['descr'] == 'Pole'][['long','lat','alt']].values.tolist()
+        return Line.df[['long','lat','alt']].values.tolist()
+
+    def _add_offset_to_df(self):
+        for index, row in self.info_df.iterrows():
+            offset_lines = row.Line.offset_lines
+            for line in offset_lines:
+                list_of_coords = offset_lines[line].to_list()
+                info = {'Trace': '_'.join([row.Trace, line]), 'Coordinates': [list_of_coords],
+                        'Type': 'offset', 'Line': Line(list_of_coords, typekey='offset',
+                                                       offset=None, offset_max_dist=None)}
+                info_os = pd.DataFrame(info)
+                self.info_df = self.info_df.append(info_os,ignore_index=True)
 
     outputdf = property(_get_outputdf)
     camelia = property(_get_cameliadf)
@@ -254,7 +270,7 @@ class LineSection:
         :param type: str: 'city', 'roads', 'hill'
         """
         self.start, self.stop, self.type = coord1, coord2, typekey
-        if typekey == 'offset':
+        if offset != None:
             self.df = pd.DataFrame(self._get_alt_profile(pole='n'), columns=['lat', 'long', 'alt', 'descr'])
             self.addOffset(offset, offset_max_dist)
         else:
@@ -350,7 +366,6 @@ class LineSection:
         start_offset_r, start_offset_l = [], []
         stop_offset_r, stop_offset_l = [], []
         coord1, coord2 = list(self.start), list(self.stop)
-        coord1[-1],coord2[-1] = get_alt([self.start, self.stop])
         _, _, theta = xy_dist(coord1, coord2)
         phi = math.pi/2 - theta
         dist = offset
@@ -369,10 +384,24 @@ class LineSection:
             self.df['offset_l_%i' % i] = [start_offset_l[i], stop_offset_l[i]]
             self.df['offset_r_%i' % i] = [start_offset_r[i], stop_offset_r[i]]
 
+    def _get_offset_line(self):
+        """
+        Return a list of Line object representing the offset original Line
+        :return: list of Line object
+        :rtype: lisf of Line
+        """
+        columns = [col for col in self.df if col.startswith('offset_')]
+        offset_lines = []
+        if columns != []:
+            return self.df[columns]
+        else:
+            print('No offsets available')
+            raise IndexError
 
     list_of_coord = property(_get_list_of_coord)
     pole_points = property(_get_pole_points)
     total_dist = property(_get_total_dist)
+    offset_lines = property(_get_offset_line)
 
 
 class Line(LineSection):
