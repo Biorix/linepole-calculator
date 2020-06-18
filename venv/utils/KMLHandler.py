@@ -4,7 +4,7 @@ from utils.Mesures import AltitudeRetrievingError
 from utils.Mesures import get_angle_between_two_lines as get_angle
 from utils.Mesures import get_xy_ground_distance as xy_dist
 from utils.Mesures import deg2grad, addToCoord
-from utils.KMLutils import openKML, random_color_gen
+from utils.KMLutils import openKML, random_color_gen, gen_placemark_from_Line
 from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
@@ -178,23 +178,21 @@ class KMLHandler(kml.KML):
             # creating nested folder
             out_nsfolder = kml.Folder(ns, id, name, desc)
             # creating placemarks (points and LineString)
-            Line = self.info_df[self.info_df.Trace == name]['Outputs'].values[0]
-            ls = styles.LineStyle(ns=ns, id=id, color=random_color_gen(), width=3)
-            s1 = styles.Style(styles = [ls])
-            outplacemark = kml.Placemark(ns, id, name, desc, styles=[s1])
-            outplacemark.geometry = LineString(Line)
-            #outplacemark.geometry.tessellate = 1 retiré pour l'instant car non pris en compte dans la fastkml
-            # tout de même fonctionnel car les coordonnées en z sont dans le KML
-            out_nsfolder.append(outplacemark)
+            Lines = self.info_df[self.info_df['Trace'].str.contains(name)]['Outputs'].to_list()
+            line_names = self.info_df[self.info_df['Trace'].str.contains(name)]['Trace'].to_list()
+            outplacemarks = gen_placemark_from_Line(Lines,ns,line_names)
+            for pm in outplacemarks:
+                out_nsfolder.append(pm)
 
             out_points_folder = kml.Folder(ns, id, name='Poteaux')
-            for point in Line:
-                id = str(Line.index(point))
-                name = placemark.name + str(id)
-                desc = 'Electric Pole'
-                outpoint = kml.Placemark(ns, id, name, desc)
-                outpoint.geometry = Point(point)
-                out_points_folder.append(outpoint)
+            for Line in Lines:
+                for point in Line:
+                    id = str(Line.index(point))
+                    name = placemark.name + str(id)
+                    desc = 'Electric Pole'
+                    outpoint = kml.Placemark(ns, id, name, desc)
+                    outpoint.geometry = Point(point)
+                    out_points_folder.append(outpoint)
 
             out_nsfolder.append(out_points_folder)
             out_nsfolders.append(out_nsfolder)
