@@ -188,7 +188,7 @@ class KMLHandler(kml.KML):
             for Line in Lines:
                 for point in Line:
                     id = str(Line.index(point))
-                    name = placemark.name + str(id)
+                    name = str(line_names[Lines.index(Line)]) + str(id)
                     desc = 'Electric Pole'
                     outpoint = kml.Placemark(ns, id, name, desc)
                     outpoint.geometry = Point(point)
