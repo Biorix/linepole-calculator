@@ -87,7 +87,7 @@ while option != 'q':
                           "(défaut 6.0 m)\n")
                     custom_dist_max = input("Distance : ")
                     if custom_dist_max != '' and custom_dist_max != '0':
-                        custom_dist_max = float(custom_offset)
+                        custom_dist_max = float(custom_dist_max)
                         if not custom_dist_max >= 0:
                             print('La distance doit être un nombre')
                             custom_dist_max = None
