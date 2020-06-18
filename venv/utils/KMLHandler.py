@@ -188,7 +188,7 @@ class KMLHandler(kml.KML):
             for Line in Lines:
                 for point in Line:
                     id = str(Line.index(point))
-                    name = str(line_names[Lines.index(Line)]) + str(id)
+                    name = str(line_names[Lines.index(Line)]) + '_' + str(id)
                     desc = 'Electric Pole'
                     outpoint = kml.Placemark(ns, id, name, desc)
                     outpoint.geometry = Point(point)
@@ -365,13 +365,13 @@ class LineSection:
         stop_offset_r, stop_offset_l = [], []
         coord1, coord2 = list(self.start), list(self.stop)
         _, _, theta = xy_dist(coord1, coord2)
-        phi = math.pi/2 - theta
+        phi = -math.pi/2 + theta
         dist = offset
         x_offsets = []
         y_offsets = []
         while dist <= max_dist:
-            x_offsets.append(dist / math.sin(theta))
-            y_offsets.append(dist / math.sin(phi))
+            x_offsets.append(dist * math.sin(phi))
+            y_offsets.append(dist * math.cos(phi))
             dist += offset
         for i in range(nb_line):
             start_offset_r.append(addToCoord(coord1, x_offsets[i], y_offsets[i]))
