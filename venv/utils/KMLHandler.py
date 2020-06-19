@@ -185,16 +185,16 @@ class KMLHandler(kml.KML):
                 out_nsfolder.append(pm)
 
             out_points_folder = kml.Folder(ns, id, name='Poteaux')
-            for Line in Lines:
-                for point in Line:
-                    id = str(Line.index(point))
-                    name = str(line_names[Lines.index(Line)]) + '_' + str(id)
-                    desc = 'Electric Pole'
-                    outpoint = kml.Placemark(ns, id, name, desc)
-                    outpoint.geometry = Point(point)
-                    out_points_folder.append(outpoint)
-
-            out_nsfolder.append(out_points_folder)
+            if not self.offset:
+                for Line in Lines:
+                    for point in Line:
+                        id = str(Line.index(point))
+                        name = str(line_names[Lines.index(Line)]) + '_' + str(id)
+                        desc = 'Electric Pole'
+                        outpoint = kml.Placemark(ns, id, name, desc)
+                        outpoint.geometry = Point(point)
+                        out_points_folder.append(outpoint)
+                out_nsfolder.append(out_points_folder)
             out_nsfolders.append(out_nsfolder)
                 
         return out_nsfolders
