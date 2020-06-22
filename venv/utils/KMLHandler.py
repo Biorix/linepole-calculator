@@ -74,6 +74,7 @@ class KMLHandler(kml.KML):
         frame = deepcopy([line.df for line in self.info_df['Line'].values.tolist()])
         for i in range(len(frame)):
             df = frame[i]
+            #todo: changer le nuéro pour un nom de type S-1 22 gr (angle en grad)
             df.insert(0,'Number', range(len(df)))
             df.insert(1, 'Name', keys[i])
         return pd.concat(frame, keys=keys, join='inner', ignore_index=True)
@@ -370,8 +371,13 @@ class LineSection:
         x_offsets = []
         y_offsets = []
         while dist <= max_dist:
-            x_offsets.append(dist * math.sin(phi))
-            y_offsets.append(dist * math.cos(phi))
+            if (math.degrees(theta) > (-180) and math.degrees(theta)) < 0 or\
+                    (math.degrees(theta) > (180) and math.degrees(theta) < 360):
+                x_offsets.append(-dist * math.sin(phi))
+                y_offsets.append(-dist * math.cos(phi))
+            else:
+                x_offsets.append(dist * math.sin(phi))
+                y_offsets.append(dist * math.cos(phi))
             dist += offset
         for i in range(nb_line):
             start_offset_r.append(addToCoord(coord1, x_offsets[i], y_offsets[i]))
@@ -379,8 +385,8 @@ class LineSection:
             stop_offset_r.append(addToCoord(coord2, x_offsets[i], y_offsets[i]))
             stop_offset_l.append(addToCoord(coord2, -x_offsets[i], -y_offsets[i]))
         for i in range(nb_line):
-            self.df['offset_l_%i' % i] = [start_offset_l[i], stop_offset_l[i]]
-            self.df['offset_r_%i' % i] = [start_offset_r[i], stop_offset_r[i]]
+            self.df['offset_l_%im' % int((1+i)*offset)] = [start_offset_l[i], stop_offset_l[i]]
+            self.df['offset_r_%im' % int((1+i)*offset)] = [start_offset_r[i], stop_offset_r[i]]
 
     def _get_offset_line(self):
         """
