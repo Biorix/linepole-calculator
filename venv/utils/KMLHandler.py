@@ -74,8 +74,10 @@ class KMLHandler(kml.KML):
         frame = deepcopy([line.df for line in self.info_df['Line'].values.tolist()])
         for i in range(len(frame)):
             df = frame[i]
-            #todo: changer le nuéro pour un nom de type S-1 22 gr (angle en grad)
-            df.insert(0,'Number', range(len(df)))
+            #TODO: changer le nuéro pour un nom de type S-1 22 gr (angle en grad)
+            num = list(range(len(df)))
+            angle_gr = list(map(deg2grad,df['Angle Horizontal'].values))
+            df.insert(0,'Number', ['s' + '-'.join(x) + 'gr' for x in zip(map(str,num),map(str,map(int,angle_gr)))])
             df.insert(1, 'Name', keys[i])
         return pd.concat(frame, keys=keys, join='inner', ignore_index=True)
 
@@ -171,6 +173,7 @@ class KMLHandler(kml.KML):
         return outputkml
 
     def _setPlacemark_for_KML(self,upstream_feature):
+        output_df = self.outputdf
         out_nsfolders = []
         for placemark in upstream_feature:
             id = placemark.id
@@ -190,7 +193,8 @@ class KMLHandler(kml.KML):
                 for Line in Lines:
                     for point in Line:
                         id = str(Line.index(point))
-                        name = str(line_names[Lines.index(Line)]) + '_' + str(id)
+                        point_name = output_df[output_df['Name'].str.contains(placemark.name)]['Number'].to_list()
+                        name = point_name[Line.index(point)]
                         desc = 'Electric Pole'
                         outpoint = kml.Placemark(ns, id, name, desc)
                         outpoint.geometry = Point(point)
