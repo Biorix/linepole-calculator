@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
+from itertools import repeat
 import pandas as pd
 import json
 from geopy import distance
@@ -46,7 +47,7 @@ def get_elevation(coordList):
         else:
             elevation += eval(elevation_sliced)
 
-    return elevation
+    return list(map(round,elevation, repeat(2)))
 
 def addToCoord(coord, dx, dy, unit='m'):
     if unit == 'm':
@@ -55,7 +56,7 @@ def addToCoord(coord, dx, dy, unit='m'):
         latitude, longitude, alt = coord
         new_latitude = latitude + (dy / r_earth) * (180 / math.pi)
         new_longitude = longitude + (dx / r_earth) * (180 / math.pi) / math.cos(latitude * math.pi / 180)
-    return [new_latitude, new_longitude, alt]
+    return [round(new_latitude, 6), round(new_longitude,6), alt]
 
 def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     """
@@ -74,7 +75,7 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
     y_dist = abs(alt2 - alt1)
     hypothenus = math.sqrt(x_dist**2 + y_dist**2)
     angle = math.degrees(math.atan(y_dist / x_dist))
-    return hypothenus, round(angle, 3)
+    return round(hypothenus, 3), round(angle, 3)
 
 # def coordinates_solver(wanted_dist, start_point, list_coordAlt, precrep=1000000):
 #     """
@@ -133,7 +134,7 @@ def get_xy_ground_distance(coord1, coord2, unit='m'):
     else:
         angle = math.atan(y_dist / x_dist)
 
-    return x_dist, y_dist, round(angle,3)
+    return round(x_dist, 3), round(y_dist, 3), round(angle,3)
 
 def get_subcoord_dist(coord1, coord2, space, unit='m'):
     """
@@ -147,7 +148,7 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     dist_tot = distance.geodesic(coord1, coord2).m
     x_dist, y_dist, angle = get_xy_ground_distance(coord1,coord2, unit=unit)
 
-    number = round(abs(dist_tot / space))
+    number = math.ceil(abs(dist_tot / space))
 
     if number <= 1:
         return [list(coord1), list(coord2)]
@@ -156,7 +157,8 @@ def get_subcoord_dist(coord1, coord2, space, unit='m'):
     splitter = MultiPoint([line.interpolate((i / number), normalized=True) for i in range(1, number)])
     wkt = splitter.wkt.replace('MULTIPOINT','').replace('(','').replace(')','').split(',')
     coordlist_str = [point.replace(' ','',1).split(' ') for point in wkt]
-    coordlist = [list(map(float, coord_str)) for coord_str in coordlist_str]
+    # ici on coupe à 7 décimales les coordonnées
+    coordlist = [list(map(round,list(map(float, coord_str)), repeat(7))) for coord_str in coordlist_str]
     [coord.append(0.0) for coord in coordlist]
 
     coordlist.insert(0, list(coord1))

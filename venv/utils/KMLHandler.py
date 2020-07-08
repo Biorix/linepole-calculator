@@ -5,6 +5,7 @@ from utils.Mesures import get_angle_between_two_lines as get_angle
 from utils.Mesures import get_xy_ground_distance as xy_dist
 from utils.Mesures import deg2grad, addToCoord
 from utils.KMLutils import openKML, random_color_gen, gen_placemark_from_Line
+from itertools import repeat
 from fastkml import kml, Document, Folder, Placemark, styles
 from shapely.geometry import Point, LineString, Polygon
 import pandas as pd
@@ -272,7 +273,8 @@ class LineSection:
         :param coord2: tupleor list:(lat, long)
         :param type: str: 'city', 'roads', 'hill'
         """
-        self.start, self.stop, self.type = coord1, coord2, typekey
+        self.start, self.stop, self.type = list(map(round,coord1, repeat(7))),\
+                                           list(map(round,coord2, repeat(7))), typekey
         if offset != None:
             self.df = pd.DataFrame(self._get_alt_profile(pole='n'), columns=['lat', 'long', 'alt', 'descr'])
             self.addOffset(offset, offset_max_dist)
