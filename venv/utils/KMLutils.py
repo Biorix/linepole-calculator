@@ -55,11 +55,23 @@ def gen_placemark_from_Line(coords, ns, names):
 
 
 def random_color_gen():
+    """
+    Generate random color in kml format
+    :return generated color
+    :rtype str
+    """
     r = lambda: random.randint(0, 255)
     return 'ff%02X%02X%02X' % (r(), r(), r())
 
 
 def color_range_gen(range_):
+    """
+    Generate random color range in kml format
+    :param length of the wanted color range
+    :type int
+    :return generated color
+    :rtype list of str
+    """
     base = Color(random_color_gen().replace('ff', '#', 1))
     finale = Color(random_color_gen().replace('ff', '#', 1))
     output_colors = []
@@ -68,12 +80,3 @@ def color_range_gen(range_):
         output_colors.append(c.replace('#', 'ff', 1))
 
     return output_colors
-
-if __name__ == "__main__":
-    from tkinter import Tk
-    from tkinter.filedialog import askopenfilename, asksaveasfilename
-
-    Tk().withdraw()
-    filepath = askopenfilename() # show an "Open" diaslog box and return the path to the selected file
-    filename = filepath.split(r'/')[-1]
-    add_offset_kml(filepath, 2.0, 6.0)
