@@ -71,11 +71,15 @@ class KMLHandler(kml.KML):
 
 
     def _get_outputdf(self):
+        """
+        Generata an output dataframe ready to enter in kml
+        :return: dataframe with every available info
+        :rtype: pandas.DataFrame
+        """
         keys = self.info_df['Trace'].values.tolist()
         frame = deepcopy([line.df for line in self.info_df['Line'].values.tolist()])
         for i in range(len(frame)):
             df = frame[i]
-            #TODO: changer le nuéro pour un nom de type S-1 22 gr (angle en grad)
             num = list(range(len(df)))
             angle_gr = list(map(deg2grad,df['Angle Horizontal'].values))
             df.insert(0,'Number', ['s' + '-'.join(x) + 'gr' for x in zip(map(str,num),map(str,map(int,angle_gr)))])
@@ -269,9 +273,16 @@ class LineSection:
     def __init__(self, coord1, coord2, typekey='normal', offset=None, offset_max_dist=None):
         """
         Object that represent a section of LineString between two coordinates
-        :param coord1: tuple or list:(lat, long)
-        :param coord2: tupleor list:(lat, long)
-        :param type: str: 'city', 'roads', 'hill'
+        :param coord1: (lat, long)
+        :type coord1: tuple or list
+        :param coord2: tuple or list:(lat, long)
+        :type coord2: tuple or list
+        :param typekey: define the space between the poles e.g :'city', 'roads', 'hill', 'custom'
+        :type typekey: str
+        :param offset: if the value is not None, the LineSection will be duplicate with an offset
+        :type offset: float
+        :param offset_max_dist: maximum distance of the offset option, allow to know the number of LineSection copies
+        :type offset_max_dist: float
         """
         self.start, self.stop, self.type = list(map(round,coord1, repeat(7))),\
                                            list(map(round,coord2, repeat(7))), typekey
@@ -418,9 +429,16 @@ class Line(LineSection):
     def __init__(self, list_of_coord, typekey='normal', offset=None, offset_max_dist=None):
         """
         Complete line composed of linesecions
-        :param list_of_coord: list of list: (lat, long, alt)
-        :param type: str: 'city', 'roads', 'hill'
+        :param list_of_coord: [(lat1, long1), (lat2, long2), ...]
+        :type coord1: list of lists or list of tuples
+        :param typekey: define the space between the poles e.g :'city', 'roads', 'hill', 'custom'
+        :type typekey: str
+        :param offset: if the value is not None, the LineSection will be duplicate with an offset
+        :type offset: float
+        :param offset_max_dist: maximum distance of the offset option, allow to know the number of LineSection copies
+        :type offset_max_dist: float
         """
+
         self.start, self.stop = list_of_coord[0], list_of_coord[-1]
         self.offset, self.offset_max_dist = offset, offset_max_dist
         if typekey in settings.space_by_type.keys():
