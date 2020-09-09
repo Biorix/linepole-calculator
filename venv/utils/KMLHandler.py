@@ -459,7 +459,10 @@ class Line(LineSection):
         for i in trange(1, len(list_of_coord), 1):
             ls = LineSection(list_of_coord[i-1], list_of_coord[i],typekey=self.type,
                              offset=self.offset, offset_max_dist=self.offset_max_dist)
-            ls_list.append(ls[:-1])
+            if i == len(list_of_coord)-1: #si c'est le dernier de la liste, on ajout la dernière coordonnée
+                ls_list.append(ls[:])
+            else:
+                ls_list.append(ls[:-1])
         return pd.concat(ls_list, ignore_index=True, sort=False)
 
     def _set_prev_hor_angles(self):
