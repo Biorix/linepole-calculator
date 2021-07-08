@@ -5,6 +5,7 @@ import pandas as pd
 from tqdm import trange, tqdm
 import random
 from colour import Color
+import numpy as np
 
 ns = '{http://www.opengis.net/kml/2.2}'
 
@@ -80,3 +81,23 @@ def color_range_gen(range_):
         output_colors.append(c.replace('#', 'ff', 1))
 
     return output_colors
+
+
+def separate_line(df):
+    lines = []
+    names = df['Name'].unique().tolist()
+    for name in names:
+        lines.append(df.loc[df.Name == name])
+
+    return lines
+
+
+def create_array_from_lines(lines):
+    arrays = []
+    for line in lines:
+        start = line[['Name', 'lat', 'long']].iloc[range(0, len(line) - 1, 1)].to_numpy()
+        stop = line[['lat', 'long']].iloc[range(1, len(line), 1)].to_numpy()
+        arrays.append(np.concatenate((start, stop), axis=1))
+
+    return np.concatenate(arrays, axis=0)
+
