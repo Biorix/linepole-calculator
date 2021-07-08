@@ -112,7 +112,10 @@ class KMLHandler(kml.KML):
         pmdesc = []
         for pm in self.Placemarks:
             if pm.geometry.geom_type == 'LineString':
-                pmname1 = pm.name
+                if pm.name in pmname:
+                    pmname1 = pm.name + str(random.randint(1000,10000))
+                else:
+                    pmname1 = pm.name
                 pmcoords1 = self._flip_longlat(pm.geometry.coords)
                 if pm.description == None:
                     pmdesc1 = 'normal'
@@ -125,7 +128,6 @@ class KMLHandler(kml.KML):
         info = {'Trace':pmname, 'Coordinates':pmcoords, 'Type':pmdesc}
         info_df = pd.DataFrame(info)
         self.info_df = info_df
-
 
     def _set_sections(self, offset=None, offset_max_dist=None):
         if 'custom' in settings.space_by_type.keys():
