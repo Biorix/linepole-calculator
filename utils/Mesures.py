@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-import requests
 from itertools import repeat
-import pandas as pd
-import json
+
 from geopy import distance
 import math
-from scipy.optimize import fsolve
+
 import subprocess
-import time
-from tqdm import trange
+
 from shapely.geometry import LineString, MultiPoint
-from shapely.ops import split
+
 
 r_earth = 6371.009
 
@@ -79,10 +76,10 @@ def get_distance_with_altitude(coordAlt1, coordAlt2, unit='m'):
 
 
 def get_xy_ground_distance(coord1, coord2, unit='m'):
-    y_dist = distance.geodesic(coord1, (coord2[0],coord1[1])).m
+    y_dist = distance.geodesic(coord1[:-1], (coord2[0],coord1[1])).m
     if coord2[0] < coord1[0]:
         y_dist *= -1
-    x_dist = distance.geodesic(coord1, (coord1[0], coord2[1])).m
+    x_dist = distance.geodesic(coord1[:-1], (coord1[0], coord2[1])).m
     if coord2[1] < coord1[1]:
         x_dist *= -1
     if x_dist < 0 or y_dist < 0:
