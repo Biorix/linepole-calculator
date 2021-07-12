@@ -85,9 +85,13 @@ def color_range_gen(range_):
 
 def separate_line(df):
     lines = []
+
     names = df['Name'].unique().tolist()
     for name in names:
-        lines.append(df.loc[df.Name == name])
+        index = range(len(df[df.Name == name]))
+        temp = df[df.Name == name]
+        temp['Section_Name'] = [name + '-' + str(i) for i in index]
+        lines.append(temp)
 
     return lines
 
@@ -95,7 +99,7 @@ def separate_line(df):
 def create_array_from_lines(lines):
     arrays = []
     for line in lines:
-        start = line[['Name', 'lat', 'long']].iloc[range(0, len(line) - 1, 1)].to_numpy()
+        start = line[['Name', 'Section_Name', 'lat', 'long']].iloc[range(0, len(line) - 1, 1)].to_numpy()
         stop = line[['lat', 'long']].iloc[range(1, len(line), 1)].to_numpy()
         arrays.append(np.concatenate((start, stop), axis=1))
 
