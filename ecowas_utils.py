@@ -21,6 +21,15 @@ handle.generatePoles()
 df = handle.outputdf
 lines = separate_line(df)
 result = create_array_from_lines(lines)
+"""
+Le profil du numpy array "result" est le suivant :
++-----------+--------------+-----------+------------+----------+-----------+
+| Line Name | Section Name | start Lat | start long | stop Lat | stop long |
+|           |              |           |            |          |           |
++-----------+--------------+-----------+------------+----------+-----------+
+|           |              |           |            |          |           |
+
+"""
 
 print(result)
 
