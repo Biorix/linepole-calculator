@@ -17,4 +17,4 @@ scipy==1.7.0
 Shapely==1.7.1
 six==1.16.0
 tqdm==4.61.2
-urllib3==1.26.6
+urllib3>=1.26.6
