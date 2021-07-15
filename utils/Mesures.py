@@ -160,6 +160,21 @@ def rad2grad(angle_in_rad):
     """
     return deg2grad(math.degrees(angle_in_rad))
 
+
+def lonlat_to_xy(dx_min_lat, dx_max_lat, dy, min_lon, max_lon, min_lat, max_lat, lon, lat):
+
+    d_lon = max_lon - min_lon
+    d_lat = max_lat - min_lat
+    ddx = dx_max_lat - dx_min_lat
+    mid_lon = (max_lon + min_lon) / 2
+
+    x = lon * dx_min_lat / d_lon + ddx * lat / d_lat / 2 - dx_min_lat * mid_lon / d_lon - ddx * min_lat / d_lat / 2
+
+    y = dy * lat / d_lat - min_lat * dy / d_lat
+
+    return x, y
+
+
 # if __name__ == "__main__":
 #     #get_elevation(11.430555, -12.682673)
 #     listTest = [[11.466135, -12.616524, 0],[11.489022, -12.538672, 0]]
