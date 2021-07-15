@@ -1,7 +1,7 @@
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from utils.KMLHandler import KMLHandler
-from utils.KMLutils import separate_line, create_array_from_lines
+from utils.KMLutils import create_array_from_info_df
 
 import settings
 
@@ -13,14 +13,10 @@ def chooseOpenFile():
 Tk().withdraw()  # we don't want a full GUI, so keep the root window from appearing
 filepath, filename = chooseOpenFile()
 
-settings.init()
 
 handle = KMLHandler(filepath)
-settings.space_by_type['custom'] = 10000000
-handle.generatePoles()
-df = handle.outputdf
-lines = separate_line(df)
-result = create_array_from_lines(lines)
+
+result = create_array_from_info_df(handle.info_df)
 """
 Le profil du numpy array "result" est le suivant :
 +-----------+--------------+-----------+------------+----------+-----------+

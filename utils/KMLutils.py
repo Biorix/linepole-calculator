@@ -83,25 +83,16 @@ def color_range_gen(range_):
     return output_colors
 
 
-def separate_line(df):
-    lines = []
-
-    names = df['Name'].unique().tolist()
-    for name in names:
-        index = range(len(df[df.Name == name]))
-        temp = df[df.Name == name]
-        temp['Section_Name'] = [name + '-' + str(i) for i in index]
-        lines.append(temp)
-
-    return lines
-
-
-def create_array_from_lines(lines):
-    arrays = []
+def create_array_from_info_df(df):
+    array = np.empty((1, 6))
+    lines = df['Trace'].unique().tolist()
     for line in lines:
-        start = line[['Name', 'Section_Name', 'lat', 'long']].iloc[range(0, len(line) - 1, 1)].to_numpy()
-        stop = line[['lat', 'long']].iloc[range(1, len(line), 1)].to_numpy()
-        arrays.append(np.concatenate((start, stop), axis=1))
+        coords = df[df.Trace == line]['Coordinates'].tolist()[0]
+        for i in range(0, len(coords)-1):
+            start_lat, stop_lat = coords[i][0], coords[i+1][0]
+            start_lon, stop_lon = coords[i][1], coords[i + 1][1]
+            section_name = line + '-' + str(lines.index(line))
+            array = np.append(array, [[line, section_name, start_lat, start_lon, stop_lat, stop_lon]], axis=0)
 
-    return np.concatenate(arrays, axis=0)
+    return array[1:][:]
 
