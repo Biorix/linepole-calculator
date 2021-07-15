@@ -113,7 +113,7 @@ class KMLHandler(kml.KML):
         for pm in self.Placemarks:
             if pm.geometry.geom_type == 'LineString':
                 if pm.name in pmname:
-                    pmname1 = pm.name + str(random.randint(1000,10000))
+                    pmname1 = pm.name + str(random.randint(1000, 10000))
                 else:
                     pmname1 = pm.name
                 pmcoords1 = self._flip_longlat(pm.geometry.coords)
@@ -125,7 +125,7 @@ class KMLHandler(kml.KML):
             pmcoords.append(pmcoords1)
             pmdesc.append(pmdesc1)
 
-        info = {'Trace':pmname, 'Coordinates':pmcoords, 'Type':pmdesc}
+        info = {'Trace': pmname, 'Coordinates': pmcoords, 'Type': pmdesc}
         info_df = pd.DataFrame(info)
         self.info_df = info_df
 
@@ -214,8 +214,8 @@ class KMLHandler(kml.KML):
     def _flip_longlat(self, coordTuple):
         outList = []
         for coord in coordTuple:
-            outList.append(tuple([coord[1],coord[0],coord[2]]))
-        return tuple(outList)
+            outList.append([coord[1],coord[0],coord[2]])
+        return outList
 
 
     def _output_coord(self, Line):
