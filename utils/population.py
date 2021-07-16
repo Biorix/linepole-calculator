@@ -8,7 +8,7 @@ from .Mesures import lonlat_to_xy
 
 
 class PixelInRange:
-    def __init__(self, tif_path, lines, buffer_dist = 1000, line_names = None):
+    def __init__(self, tif_path, lines, buffer_dist=1000, line_names=None):
         self.tif_ds = gdal.Open(tif_path)
 
         if line_names is None:
@@ -83,12 +83,10 @@ class PixelInRange:
         l_columns = ['x_start', 'y_start', 'x_end', 'y_end', 'pixel_sum']
         l_coord = np.concatenate((x_start[:, None], y_start[:, None], x_end[:, None], y_end[:, None]), axis=1)
 
-        self.line_df = pd.DataFrame(index= line_names, columns=l_columns)
+        self.line_df = pd.DataFrame(index=line_names, columns=l_columns)
         self.line_df[l_columns[:-1]] = l_coord
 
-
     def eval_pixel_in_range(self, dist=600):
-
         tif = self.flat_tif_arr
 
         for i, row in self.line_df.iterrows():
