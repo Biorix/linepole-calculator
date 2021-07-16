@@ -2,6 +2,8 @@
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from utils.KMLHandler import KMLHandler
+from utils.KMLutils import extract_info_from_df
+from utils.population import PixelInRange
 import settings
 import traceback
 
@@ -22,11 +24,12 @@ while option != 'q':
     settings.init()
     option = ''
     print("Veuillez choisir parmis les options suivantes :\n"
-          "1: Traiter le fichier : {0} ({1})\n"
+          "1: Générer des poteaux à partir du fichier : {0} ({1})\n"
           "2: Choisir un autre fichier\n"
           "3: Générer un KML augmenté\n"
           "4: Générer un CSV pour Camelia\n"
           "5: Générer un CSV avec toutes les données\n"
+          "6: Générer un CSV Pixel in range\n"
           "q: quitter\n".format(filename, analised))
     option = input("choix :  ")
 
@@ -130,6 +133,26 @@ while option != 'q':
             df = handle.outputdf
             output_filename = asksaveasfilename(defaultextension='.csv')
             df.to_csv(output_filename)
+        except Exception as e:
+            print(traceback.format_exc())
+            print(e)
+
+    elif option == '6':
+        try:
+            handle = KMLHandler(filepath)
+            print("Choisissez le fichier TIF pour l'analyse")
+            Tk().withdraw()
+            filepath_tiff, filename_tiff = chooseOpenFile()
+            line_df = extract_info_from_df(handle.info_df)
+            line_array = line_df[['start_lat', 'start_lon', 'stop_lat', 'stop_lon']].to_numpy()
+            line_names = line_df['Section'].to_list()
+            pix = PixelInRange(filepath_tiff, line_array, line_names=line_names)
+            pix.eval_pixel_in_range()
+
+            output_filename = asksaveasfilename(defaultextension='.csv')
+
+            pix.line_df_to_csv(path=output_filename)
+
         except Exception as e:
             print(traceback.format_exc())
             print(e)
