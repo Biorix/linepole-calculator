@@ -83,8 +83,14 @@ def color_range_gen(range_):
     return output_colors
 
 
-def create_array_from_info_df(df):
-    array = np.empty((1, 6))
+def extract_info_from_df(df):
+    line_list = []
+    section_list = []
+    start_lat_list = []
+    start_lon_list = []
+    stop_lat_list = []
+    stop_lon_list = []
+
     lines = df['Trace'].unique().tolist()
     for line in lines:
         coords = df[df.Trace == line]['Coordinates'].tolist()[0]
@@ -92,7 +98,15 @@ def create_array_from_info_df(df):
             start_lat, stop_lat = coords[i][0], coords[i+1][0]
             start_lon, stop_lon = coords[i][1], coords[i + 1][1]
             section_name = line + '-' + str(lines.index(line))
-            array = np.append(array, [[line, section_name, start_lat, start_lon, stop_lat, stop_lon]], axis=0)
+            start_lat_list.append(start_lat)
+            start_lon_list.append(start_lon)
+            stop_lat_list.append(stop_lat)
+            stop_lon_list.append(stop_lon)
 
-    return array[1:][:]
+            section_list.append(section_name)
+            line_list.append(line)
+
+    df_out = pd.DataFrame({'Line': line_list,'Section': section_list, 'start_lat': start_lat_list,
+                           'start_lon': start_lon_list, 'stop_lat': stop_lat_list, 'stop_lon': stop_lon_list})
+    return df_out
 
